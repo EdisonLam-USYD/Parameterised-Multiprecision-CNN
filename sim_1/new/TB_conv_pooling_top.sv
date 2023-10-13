@@ -14,10 +14,10 @@ module TB_conv_pooling_top;
     localparam C1NumberOfK      = 4;
     localparam C1KernelBitSize  = 2;
     
-    localparam C2CyclesPerPixel = 2;
+    localparam C2CyclesPerPixel = 4;
     localparam C2NumberOfK      = 8;
     localparam C2KernelBitSize  = 4;
-    localparam C2ProcessingElements = 4;
+    localparam C2ProcessingElements = 2;
 
 
     localparam [C1KernelBitSize*(N*N)-1:0] C1kernel [C1NumberOfK-1:0]
@@ -58,7 +58,7 @@ module TB_conv_pooling_top;
     logic                                           out_ready;
     
     logic [C2NumberOfK-1:0]                                     C2_out_valid;
-    logic [C2ProcessingElements:0][BitSize-1:0]       C2_out_data;
+    logic [C2ProcessingElements-1:0][BitSize-1:0]       C2_out_data;
     //logic [C3NumberOfK-1:0]                                     C3_out_valid;
     //logic [C3NumberOfK-1:0][BitSize-1:0]       C3_out_data;
     //logic [C4NumberOfK-1:0]                                     C4_out_valid;

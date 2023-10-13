@@ -10,7 +10,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module conv_pooling_top #(N = 3, BitSize=32, ImageWidth = 8, Stride = 2,
-        C1CyclesPerPixel = 1, C2CyclesPerPixel = 1,      
+        C1CyclesPerPixel = 2, C2CyclesPerPixel = 2,      
         C1NumberOfK = 4, C2NumberOfK = 4, C2ProcessingElements = 2,
         C1KernelBitSize = 4, C2KernelBitSize = 4,
         [C1KernelBitSize*(N*N)-1:0] C1kernel [C1NumberOfK-1:0] = {'0,'0,'0,'0},
