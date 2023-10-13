@@ -50,6 +50,11 @@ module conv_pooling_layer #(N = 2, BitSize=32, ImageWidth = 4, NumberOfK = 4, Ke
     logic [NumberOfK-1:0]               switch_valid;
     logic [NumberOfK-1:0]               pooling_done_arr;
 
+
+    logic                               res_n_r;
+    logic [(N*N)*BitSize-1:0] 	        buffer_out_r;
+    logic                               buffer_valid_r;
+
     assign pooling_done = (pooling_done_arr=={NumberOfK{1'b1}})?1:0;
 
     convolution_buffer #(.N(N),  .BitSize(BitSize), .ImageWidth(ImageWidth)) conv_buffer
@@ -64,13 +69,14 @@ module conv_pooling_layer #(N = 2, BitSize=32, ImageWidth = 4, NumberOfK = 4, Ke
         .out_done(buffer_done)
     );
 
+
     convolution_stage #(.NumberOfK(NumberOfK), .N(N), .BitSize(BitSize), 
         .KernelBitSize(KernelBitSize), .ImageWidth(ImageWidth), .CyclesPerPixel(CyclesPerPixel), .kernel(kernel)) conv_stage
 	(
     	.clk(clk),
-        .res_n(res_n),
-        .in_valid(buffer_valid),
-        .in_data(buffer_out),      
+        .res_n(res_n_r),
+        .in_valid(buffer_valid_r),
+        .in_data(buffer_out_r),      
       	.out_ready(),
         .out_valid(conv_valid),
         .out_data(conv_out)	
@@ -100,5 +106,13 @@ module conv_pooling_layer #(N = 2, BitSize=32, ImageWidth = 4, NumberOfK = 4, Ke
             );
         end
     endgenerate
+
+
+    always_ff@(posedge clk) begin
+        res_n_r         <= res_n;
+        buffer_out_r    <= buffer_out;
+        buffer_valid_r  <= buffer_valid;
+  	end
+
 
 endmodule
