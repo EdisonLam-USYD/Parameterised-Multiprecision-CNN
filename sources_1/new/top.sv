@@ -9,7 +9,7 @@ module top #(
     [C2KernelBitSize*(N*N)-1:0] C2kernel [C2NumberOfK-1:0] = {'0,'0,'0,'0},
     // dnn top parameters
     M_W_BitSize = 16, NumLayers = 4, MaxNumNerves = 6,
-    CyclesPerPixel = 4, ImageSize = 16, integer LWB [NumLayers-1:0] = '{4, 2, 4, 8}, // left to right 
+    ImageSize = 16, integer LWB [NumLayers-1:0] = '{4, 2, 4, 8}, // left to right 
     integer LNN [NumLayers-1:0] = '{2, 3, 5, 6} // left to right
     )
     (
@@ -24,6 +24,10 @@ module top #(
         output                                              out_valid,
         output                                              out_done
     );
+
+    localparam C1CyclesPerPixel = C1NumberOfK/2;
+    localparam C2CyclesPerPixel = C2NumberOfK/C2ProcessingElements;
+
 
     logic [C2NumberOfK-1:0]                           C2_out_valid;
     logic [C2ProcessingElements:0][BitSize-1:0]       C2_out_data;
@@ -46,14 +50,11 @@ module top #(
     );
 
     dnn_top #(
-        .BitSize(BitSize), .M_W_BitSize(M_W_BitSize), .NumIn((ImageWidth/(PoolingN**2))**2), .MaxNumNerves(MaxNumNerves), .NumOfImages(C2NumberOfK), // only does C2NumberOfK before requiring a reset
-        .CyclesPerPixel(C2NumberOfK/C2ProcessingElements), .ImageSize(ImageSize), .NumLayers(NumLayers), .LWB(LWB), .LNN(LNN) 
+        .BitSize(BitSize), .M_W_BitSize(M_W_BitSize), .NumIn(C2ProcessingElements), .MaxNumNerves(MaxNumNerves), .NumOfImages(C2NumberOfK), // only does C2NumberOfK before requiring a reset
+      .CyclesPerPixel(C2CyclesPerPixel), .ImageSize((ImageWidth/(PoolingN**2))**2), .NumLayers(NumLayers), .LWB(LWB), .LNN(LNN) 
     ) dnn_inst (
         .clk(clk), .res_n(res_n), .in_fl_res(C2_out_set_done), .in_valid(C2_out_valid), .in_data(C2_out_data), .in_weights(in_weight), //. in_w_en(1),
         .out_ready(out_ready), .out_data(out_data), .out_valid(out_valid), .out_done(out_done)
     );
-
-
-
 
 endmodule
