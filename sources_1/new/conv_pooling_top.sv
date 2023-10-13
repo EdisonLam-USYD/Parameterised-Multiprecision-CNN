@@ -9,9 +9,10 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-module conv_pooling_top #(N = 3, BitSize=32, ImageWidth = 8, L1CyclesPerPixel = 1, Stride = 2,
+module conv_pooling_top #(N = 3, BitSize=32, ImageWidth = 8, Stride = 2,
+        C1CyclesPerPixel = 1, C2CyclesPerPixel = 1,      
         C1NumberOfK = 4, C2NumberOfK = 4, C2ProcessingElements = 2,
-        C1KernelBitSize = 4, C2KernelBitSize = 4,// C3KernelBitSize = 2,
+        C1KernelBitSize = 4, C2KernelBitSize = 4,
         [C1KernelBitSize*(N*N)-1:0] C1kernel [C1NumberOfK-1:0] = {'0,'0,'0,'0},
         [C2KernelBitSize*(N*N)-1:0] C2kernel [C2NumberOfK-1:0] = {'0,'0,'0,'0})
         // [C3KernelBitSize*(N*N)-1:0] C3kernel [C3NumberOfK-1:0] = {'0,'0,'0,'0})
@@ -27,8 +28,6 @@ module conv_pooling_top #(N = 3, BitSize=32, ImageWidth = 8, L1CyclesPerPixel = 
             output logic [C2ProcessingElements-1:0][BitSize-1:0] 	    out_data
     );
 
-    //localparam C1NumberOfK = 3;
-    localparam L2CyclesPerPixel = L1CyclesPerPixel*Stride**2;
     localparam L2ImageWidth = ImageWidth/Stride;
     localparam ProcessingElements = 2;
 
@@ -48,7 +47,7 @@ module conv_pooling_top #(N = 3, BitSize=32, ImageWidth = 8, L1CyclesPerPixel = 
 
     //First convolution stage with 3 kernels
     conv_pooling_layer #(.N (N), .BitSize(BitSize), .ImageWidth(ImageWidth), .NumberOfK(C1NumberOfK), 
-        .KernelBitSize(C1KernelBitSize), .CyclesPerPixel(L1CyclesPerPixel), .Stride(Stride),
+        .KernelBitSize(C1KernelBitSize), .CyclesPerPixel(C1CyclesPerPixel), .Stride(Stride),
         .ProcessingElements(2), .kernel(C1kernel)) C1
 		(
     		.clk(clk),
@@ -74,7 +73,7 @@ module conv_pooling_top #(N = 3, BitSize=32, ImageWidth = 8, L1CyclesPerPixel = 
 
 
     conv_pooling_layer #(.N (N), .BitSize(BitSize), .ImageWidth(L2ImageWidth), .NumberOfK(C2NumberOfK), 
-        .KernelBitSize(C2KernelBitSize), .CyclesPerPixel(L1CyclesPerPixel), .Stride(Stride),
+        .KernelBitSize(C2KernelBitSize), .CyclesPerPixel(C2CyclesPerPixel), .Stride(Stride),
         .ProcessingElements(C2ProcessingElements), .kernel(C2kernel)) C2
 		(
     		.clk(clk),

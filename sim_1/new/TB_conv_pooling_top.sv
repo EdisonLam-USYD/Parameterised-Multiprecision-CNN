@@ -3,27 +3,21 @@ module TB_conv_pooling_top;
     localparam BitSize = 4;
     localparam N = 2;
     localparam ImageWidth = 8;
-    localparam L1CyclesPerPixel = 2;
     localparam Stride = 2;
     //localparam K = 2;
     //localparam NoK = 4;
     //localparam CyclesPerPixel = 2;
     // localparam ProcessingElements = NoK/CyclesPerPixel;
 
+    
+    localparam C1CyclesPerPixel = 2;
     localparam C1NumberOfK      = 4;
     localparam C1KernelBitSize  = 2;
     
-    localparam C2NumberOfK      = 4;
-    localparam C2KernelBitSize  = 2;
-
-    // localparam C3NumberOfK      = 8;
-    // localparam C3KernelBitSize  = 4;
-
-    // localparam C4NumberOfK      = 4;
-    // localparam C4KernelBitSize  = 8;
-
-    localparam L2CyclesPerPixel = L1CyclesPerPixel*Stride*2;
-
+    localparam C2CyclesPerPixel = 2;
+    localparam C2NumberOfK      = 8;
+    localparam C2KernelBitSize  = 4;
+    localparam C2ProcessingElements = 4;
 
 
     localparam [C1KernelBitSize*(N*N)-1:0] C1kernel [C1NumberOfK-1:0]
@@ -32,21 +26,21 @@ module TB_conv_pooling_top;
                            18'b111111101010010101,
                            18'b110100100011001011};
         
-    localparam [C2KernelBitSize*(N*N)-1:0] C2kernel [C2NumberOfK-1:0] 
-                        = {18'b000110110001101100,
-                           18'b111111101010010101,
-                           18'b110100100011001011,
-                           18'b101010010101011000}; 
+    // localparam [C2KernelBitSize*(N*N)-1:0] C2kernel [C2NumberOfK-1:0] 
+    //                     = {18'b000110110001101100,
+    //                        18'b111111101010010101,
+    //                        18'b110100100011001011,
+    //                        18'b101010010101011000}; 
 
-    // localparam [C3KernelBitSize*(N*N)-1:0] C3kernel [C3NumberOfK-1:0]
-    //                     = {36'b001011000010101010010011101110001111,
-    //                        36'b110101000010011100011100000010110010,
-    //                        36'b010000010011001110110110001010001100,
-    //                        36'b100110111000111111101111100100100010,
-    //                        36'b101111010111101011010011101101001001,
-    //                        36'b001110110011000011110111110010010011,
-    //                        36'b111101101101111101100100111110101100,
-    //                        36'b110101111110110010011111001100101101};
+    localparam [C2KernelBitSize*(N*N)-1:0] C2kernel [C2NumberOfK-1:0]
+                        = {36'b001011000010101010010011101110001111,
+                           36'b110101000010011100011100000010110010,
+                           36'b010000010011001110110110001010001100,
+                           36'b100110111000111111101111100100100010,
+                           36'b101111010111101011010011101101001001,
+                           36'b001110110011000011110111110010010011,
+                           36'b111101101101111101100100111110101100,
+                           36'b110101111110110010011111001100101101};
        
     // localparam [C4KernelBitSize*(N*N)-1:0] C4kernel [C4NumberOfK-1:0]
     //                     = {72'b101000000010011001000010111111101100111010010100000010011000011000011100,
@@ -64,7 +58,7 @@ module TB_conv_pooling_top;
     logic                                           out_ready;
     
     logic [C2NumberOfK-1:0]                                     C2_out_valid;
-    logic [1:0][BitSize-1:0]       C2_out_data;
+    logic [C2ProcessingElements:0][BitSize-1:0]       C2_out_data;
     //logic [C3NumberOfK-1:0]                                     C3_out_valid;
     //logic [C3NumberOfK-1:0][BitSize-1:0]       C3_out_data;
     //logic [C4NumberOfK-1:0]                                     C4_out_valid;
@@ -83,8 +77,9 @@ module TB_conv_pooling_top;
 
 
 
-    conv_pooling_top #(.N(N), .BitSize(BitSize), .ImageWidth(ImageWidth), .L1CyclesPerPixel(L1CyclesPerPixel), .Stride(Stride), 
-        .C1NumberOfK(C1NumberOfK), .C2NumberOfK(C2NumberOfK),
+    conv_pooling_top #(.N(N), .BitSize(BitSize), .ImageWidth(ImageWidth), .Stride(Stride),
+        .C1CyclesPerPixel(C1CyclesPerPixel), .C2CyclesPerPixel(C2CyclesPerPixel),
+        .C1NumberOfK(C1NumberOfK), .C2NumberOfK(C2NumberOfK), .C2ProcessingElements(C2ProcessingElements),
         .C1KernelBitSize(C1KernelBitSize), .C2KernelBitSize(C2KernelBitSize), 
         .C1kernel(C1kernel), .C2kernel(C2kernel)) conv_pooling_top
 		(
@@ -97,7 +92,7 @@ module TB_conv_pooling_top;
             .out_data(C2_out_data)
     );
 
-    // conv_pooling_top #(.N(N), .BitSize(BitSize), .ImageWidth(ImageWidth), .L1CyclesPerPixel(L1CyclesPerPixel), .Stride(Stride), 
+    // conv_pooling_top #(.N(N), .BitSize(BitSize), .ImageWidth(ImageWidth), .C1CyclesPerPixel(C1CyclesPerPixel), .Stride(Stride), 
     //     .C2NumberOfK(C2NumberOfK), .C3NumberOfK(C3NumberOfK), .C4NumberOfK(C4NumberOfK),
     //     .C1KernelBitSize(C1KernelBitSize), .C2KernelBitSize(C2KernelBitSize), .C3KernelBitSize(C3KernelBitSize), .C4KernelBitSize(C4KernelBitSize),
     //     .C1kernel(C1kernel), .C2kernel(C2kernel), .C3kernel(C3kernel), .C4kernel(C4kernel)) conv_pooling_top
