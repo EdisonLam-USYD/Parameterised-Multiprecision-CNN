@@ -19,8 +19,8 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module conv_pooling_layer #(N = 2, BitSize=32, ImageWidth = 4, NumberOfK = 4, KernelBitSize = 4, CyclesPerPixel = 2, Stride = 2,
-                            ProcessingElements = (NumberOfK+CyclesPerPixel-1)/CyclesPerPixel,
+module conv_pooling_layer #(N = 2, BitSize=32, ImageWidth = 4, NumberOfK = 4, KernelBitSize = 4, ProcessingElements = 2, 
+                            CyclesPerPixel = NumberOfK/ProcessingElements, Stride = 2,
                             [KernelBitSize*(N*N)-1:0] kernel [NumberOfK-1:0] = {'0})
 		(
     		input 						clk,
