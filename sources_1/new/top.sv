@@ -61,14 +61,14 @@ module top #(
         .BitSize(BitSize), .M_W_BitSize(M_W_BitSize), .NumIn(C2ProcessingElements), .MaxNumNerves(MaxNumNerves), .NumOfImages(C2NumberOfK), // only does C2NumberOfK before requiring a reset
       .CyclesPerPixel(C2CyclesPerPixel), .ImageSize((ImageWidth/(PoolingN**2))**2), .NumLayers(NumLayers), .LWB(LWB), .LNN(LNN) 
     ) dnn_inst (
-        .clk(clk), .res_n(res_n), .in_fl_res(C2_out_set_done), .in_valid(C2_out_valid), .in_data(C2_out_data), .in_weights(in_weight), //. in_w_en(1),
+        .clk(clk), .res_n(res_n), .in_fl_res(C2_out_set_done), .in_valid(C2_out_valid), .in_data(C2_out_data), .in_weights(in_weights), //. in_w_en(1),
         .out_ready(out_ready_dnn), .out_data(out_data), .out_valid(out_valid), .out_done(out_done)
     );
 
     always_ff @(posedge clk) begin
-        dnn_in_valid    = C2_out_valid;
-        dnn_in_data     = C2_out_data;
-        dnn_in_set_done = C2_out_set_done;
+        dnn_in_valid    <= C2_out_valid;
+        dnn_in_data     <= C2_out_data;
+        dnn_in_set_done <= C2_out_set_done;
     end
 
 endmodule
