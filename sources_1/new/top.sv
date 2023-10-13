@@ -41,7 +41,7 @@ module top #(
         .in_data(in_data),
         .out_ready(out_ready),
         .out_valid(C2_out_valid),
-        .out_data(C2_out_data)
+        .out_data(C2_out_data),
         .out_set_done(C2_out_set_done)
     );
 
