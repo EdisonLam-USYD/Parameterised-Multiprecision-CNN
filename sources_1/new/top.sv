@@ -3,7 +3,7 @@
 module top #(
     // convolution + pooling layer(s) top parameters
     N = 3, BitSize = 32, ImageWidth = 8, PoolingN = 2, 
-    C1NumberOfK = 4, C2NumberofK = 4, C2ProcessingElements = 2,
+    C1NumberOfK = 4, C2NumberOfK = 4, C2ProcessingElements = 2,
     C1KernelBitSize = 4, C2KernelBitSize = 4,
     [C1KernelBitSize*(N*N)-1:0] C1kernel [C1NumberOfK-1:0] = {'0,'0,'0,'0},
     [C2KernelBitSize*(N*N)-1:0] C2kernel [C2NumberOfK-1:0] = {'0,'0,'0,'0},
