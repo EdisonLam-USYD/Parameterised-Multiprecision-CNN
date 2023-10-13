@@ -45,6 +45,7 @@ module conv_pooling_top #(N = 3, BitSize=32, ImageWidth = 8, Stride = 2,
 
     
     assign  C2_rst = !(!res_n|C2_pooling_done);
+    assign out_set_done = C2_pooling_done;
 
     //First convolution stage with 3 kernels
     conv_pooling_layer #(.N (N), .BitSize(BitSize), .ImageWidth(ImageWidth), .NumberOfK(C1NumberOfK), 
