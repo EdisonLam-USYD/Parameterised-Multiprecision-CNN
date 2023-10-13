@@ -56,7 +56,7 @@ module systolic_pe #(BitSize = 8, M_W_BitSize = 8, Weight_BitSize = 8)
             // out_b                   <= in_b;
         end
         // if (in_w_en) begin
-        //     out_b                   <= in_b;
+        out_b                   <= in_b;
         // end
         // $display("in_a:%b, in_b:%b, stored_b:%b, in_ps:%b, out: %b", in_a, in_b, stored_b, in_partial_sum, out_partial_sum);
     end

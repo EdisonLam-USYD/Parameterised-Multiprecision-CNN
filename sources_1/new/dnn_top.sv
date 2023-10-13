@@ -38,7 +38,7 @@ module dnn_top
     input                                       res_n,
     input [NumOfImages-1:0]                     in_valid,
     input [NumIn-1:0][BitSize-1:0]              in_data,
-    input                                       in_w_en,
+    // input                                       in_w_en,
     input [MaxNumNerves-1:0][M_W_BitSize-1:0]   in_weights,
 
     output                              out_ready,
