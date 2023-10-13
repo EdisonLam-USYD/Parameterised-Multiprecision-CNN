@@ -25,6 +25,7 @@ module conv_pooling_top #(N = 3, BitSize=32, ImageWidth = 8, Stride = 2,
             output logic                                        out_ready,
 
             output logic [C2NumberOfK-1:0]                      out_valid,
+            output logic                                        out_set_done,
             output logic [C2ProcessingElements-1:0][BitSize-1:0] 	    out_data
     );
 
