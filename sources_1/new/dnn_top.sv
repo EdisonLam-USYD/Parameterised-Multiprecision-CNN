@@ -36,6 +36,7 @@ module dnn_top
 (
     input                                       clk,
     input                                       res_n,
+    input                                       in_fl_res,
     input [NumOfImages-1:0]                     in_valid,
     input [NumIn-1:0][BitSize-1:0]              in_data,
     // input                                       in_w_en,
@@ -62,7 +63,7 @@ module dnn_top
     logic fl_out_start;
 
     flattening_layer #(.BitSize(BitSize), .ImageSize(ImageSize), .NumOfImages(NumOfImages), .NumOfInputs(NumIn), .CyclesPerPixel(CyclesPerPixel))
-        f_layer0 (.clk(clk), .res_n(res_n), .in_valid(in_valid), .in_data(in_data), .out_ready(fl_out_ready), .out_valid(fl_out_valid), 
+        f_layer0 (.clk(clk), .res_n(res_n && !in_fl_res), .in_valid(in_valid), .in_data(in_data), .out_ready(fl_out_ready), .out_valid(fl_out_valid), 
         .out_data(fl_out_data), .out_start(fl_out_start));
 
 
