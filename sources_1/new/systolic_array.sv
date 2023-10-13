@@ -112,7 +112,7 @@ module systolic_array #(BitSize = 8, M_W_BitSize = 4, Weight_BitSize = 2, NumOfI
     always_comb begin
         t_in_data = in_data;
         en_l_b = (counter_w + 1 == NumOfInputs) ? 1'b1 : 1'b0;
-        out_ready = (counter_w + 1 >= NumOfInputs) ? 1'b1 : 1'b0;        // out_ready is on when all weights are loaded in
+        out_ready = (counter_w + 1 > NumOfInputs) ? 1'b1 : 1'b0;        // out_ready is on when all weights are loaded in
         out_done  = (done_latch && in_valid && !out_valid) ? 1 : 0;
         // out_data = out_array;
     end
