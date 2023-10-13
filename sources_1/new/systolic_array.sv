@@ -61,7 +61,7 @@ module systolic_array #(BitSize = 8, M_W_BitSize = 4, Weight_BitSize = 2, NumOfI
     (
         input                                   clk,
         input                                   res_n,
-        input                                   in_w_en,
+        // input                                   in_w_en,
         input                                   in_start,           // signals when out_done and out_valid should stop, hold start for 1 cycle per height (m)
         input                                   in_valid,           // should always be on unless blockage
         input [NumOfInputs*BitSize-1:0]         in_data,            // (assuming m = 1)
@@ -100,7 +100,7 @@ module systolic_array #(BitSize = 8, M_W_BitSize = 4, Weight_BitSize = 2, NumOfI
             done_latch      <= 'b0;
         end
         else begin
-            if ((counter_w < NumOfInputs + 1) && in_w_en) begin
+            if ((counter_w < NumOfInputs + 1) /*&& in_w_en*/) begin
                 counter_w   <= counter_w + 1;
             end
             done_check[0]   <= in_start && in_valid;
@@ -127,22 +127,22 @@ module systolic_array #(BitSize = 8, M_W_BitSize = 4, Weight_BitSize = 2, NumOfI
                 logic [BitSize-1:0]          out_ps;
                 if (i == 0 && j == 0) begin
                     systolic_pe #(.BitSize(BitSize), .Weight_BitSize(Weight_BitSize), .M_W_BitSize(M_W_BitSize)) s_block 
-                        (.clk(clk), .res_n(res_n), .in_valid(in_valid), .en_l_b(en_l_b), .in_a(t_in_data[NumOfInputs-1]), .in_b(in_w[NumOfNerves-1-j]), .in_w_en(in_w_en),
+                        (.clk(clk), .res_n(res_n), .in_valid(in_valid), .en_l_b(en_l_b), .in_a(t_in_data[NumOfInputs-1]), .in_b(in_w[NumOfNerves-1-j]), //.in_w_en(in_w_en),
                         .in_partial_sum(in_pa[NumOfNerves-1-j]), .out_a(si[i].sj[j].out_a), .out_b(si[i].sj[j].out_b), .out_partial_sum(si[i].sj[j].out_ps));
                 end
                 else if (i == 0) begin
                     systolic_pe #(.BitSize(BitSize), .Weight_BitSize(Weight_BitSize), .M_W_BitSize(M_W_BitSize)) s_block 
-                        (.clk(clk), .res_n(res_n), .in_valid(in_valid), .en_l_b(en_l_b), .in_a(si[i].sj[j-1].out_a), .in_b(in_w[NumOfNerves-1-j]), .in_w_en(in_w_en),
+                        (.clk(clk), .res_n(res_n), .in_valid(in_valid), .en_l_b(en_l_b), .in_a(si[i].sj[j-1].out_a), .in_b(in_w[NumOfNerves-1-j]), //.in_w_en(in_w_en),
                         .in_partial_sum(in_pa[NumOfNerves-1-j]), .out_a(si[i].sj[j].out_a), .out_b(si[i].sj[j].out_b), .out_partial_sum(si[i].sj[j].out_ps));
                 end
                 else if (j == 0) begin
                     systolic_pe #(.BitSize(BitSize), .Weight_BitSize(Weight_BitSize), .M_W_BitSize(M_W_BitSize)) s_block 
-                        (.clk(clk), .res_n(res_n), .in_valid(in_valid), .en_l_b(en_l_b), .in_a(t_in_data[NumOfInputs-1-i]), .in_b(si[i-1].sj[j].out_b), .in_w_en(in_w_en),
+                        (.clk(clk), .res_n(res_n), .in_valid(in_valid), .en_l_b(en_l_b), .in_a(t_in_data[NumOfInputs-1-i]), .in_b(si[i-1].sj[j].out_b), //.in_w_en(in_w_en),
                         .in_partial_sum(si[i-1].sj[j].out_ps), .out_a(si[i].sj[j].out_a), .out_b(si[i].sj[j].out_b), .out_partial_sum(si[i].sj[j].out_ps));
                 end
                 else begin
                     systolic_pe #(.BitSize(BitSize), .Weight_BitSize(Weight_BitSize), .M_W_BitSize(M_W_BitSize)) s_block 
-                    (.clk(clk), .res_n(res_n), .in_valid(in_valid), .en_l_b(en_l_b), .in_a(si[i].sj[j-1].out_a), .in_b(si[i-1].sj[j].out_b), .in_w_en(in_w_en),
+                    (.clk(clk), .res_n(res_n), .in_valid(in_valid), .en_l_b(en_l_b), .in_a(si[i].sj[j-1].out_a), .in_b(si[i-1].sj[j].out_b), //.in_w_en(in_w_en),
                     .in_partial_sum(si[i-1].sj[j].out_ps), .out_a(si[i].sj[j].out_a), .out_b(si[i].sj[j].out_b), .out_partial_sum(si[i].sj[j].out_ps));
                 end
             end

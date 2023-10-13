@@ -29,7 +29,7 @@ module systolic_pe #(BitSize = 8, M_W_BitSize = 8, Weight_BitSize = 8)
         input                               en_l_b,              // loads weight on high and passes on the current weight
         input [BitSize-1:0]                 in_a,
         input [M_W_BitSize-1:0]             in_b,               // actual value can be stored based on Weight_BitSize
-        input                               in_w_en,
+        // input                               in_w_en,
         input [BitSize-1:0]                 in_partial_sum,
         output logic [BitSize-1:0]          out_a,
         output logic [M_W_BitSize-1:0]      out_b,
@@ -53,11 +53,11 @@ module systolic_pe #(BitSize = 8, M_W_BitSize = 8, Weight_BitSize = 8)
                 out_partial_sum     <= out_value;
                 out_a               <= in_a;
             end
-            out_b                   <= in_b;
+            // out_b                   <= in_b;
         end
-        if (in_w_en) begin
-            out_b                   <= in_b;
-        end
+        // if (in_w_en) begin
+        //     out_b                   <= in_b;
+        // end
         // $display("in_a:%b, in_b:%b, stored_b:%b, in_ps:%b, out: %b", in_a, in_b, stored_b, in_partial_sum, out_partial_sum);
     end
 
