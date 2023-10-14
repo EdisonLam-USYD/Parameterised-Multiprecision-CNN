@@ -21,6 +21,7 @@ module mem_module #(NumberOfK = 4, BitSize = 32, ProcessingElements = 2, ImageWi
     
     logic out_valid_c;
     logic out_valid_r;
+    logic out_valid_mem_delay;
 
     logic [31:0] addra;
     logic [31:0] addrb;
@@ -59,10 +60,10 @@ module mem_module #(NumberOfK = 4, BitSize = 32, ProcessingElements = 2, ImageWi
 
 
 
-    assign addra = (!read_mode_r)?(tempA*(ImageWidth**2) + pixel_count_c):{{32{1'b0}},pixel_count_c};
-    assign addrb = tempB * (ImageWidth**2) + pixel_count_c;
+    assign addra = (!read_mode_r)?(tempA*(ImageWidth**2) + pixel_count_r):{{32{1'b0}},pixel_count_r};
+    assign addrb = tempB * (ImageWidth**2) + pixel_count_r;
 
-    assign out_valid = out_valid_r;
+    assign out_valid = out_valid_mem_delay;
 
 
     blk_mem_gen_0 bram (
@@ -144,6 +145,7 @@ module mem_module #(NumberOfK = 4, BitSize = 32, ProcessingElements = 2, ImageWi
             image_done_r <= 1;
             pooling_done_r <= 0;
             out_valid_r <= 0;
+            out_valid_mem_delay <= 0;
       	end
     	else
       	begin
@@ -153,6 +155,7 @@ module mem_module #(NumberOfK = 4, BitSize = 32, ProcessingElements = 2, ImageWi
             image_done_r <= image_done;
             pooling_done_r <= pooling_done;
             out_valid_r <= out_valid_c;
+            out_valid_mem_delay <= out_valid_r;
         end
   	end
 endmodule
