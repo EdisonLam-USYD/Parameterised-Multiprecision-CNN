@@ -83,7 +83,7 @@ module TB_conv_buffer;
         for (int counter = 0; counter < ImageWidth*(N-1)/2 + (N-1)/2 + 1; counter = counter + 1) begin
             #5
             in_data = 0;
-            in_valid = 1;
+            in_valid = 0;
             clk = 1;
             #5
             clk = 0;
