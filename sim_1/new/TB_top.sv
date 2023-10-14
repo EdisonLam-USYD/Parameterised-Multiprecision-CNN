@@ -37,6 +37,13 @@ module TB_top;
     localparam C2KernelBitSize  = 4;
     localparam C2ProcessingElements = 2;
 
+    localparam MaxNumNerves         = 3;
+    localparam M_W_BitSize          = 4;
+    localparam NumLayers            = 3;
+    localparam integer LNN [NumLayers-1:0]    = '{2, 3};
+    localparam integer LWB [NumLayers-1:0]    = '{4, 2};
+    localparam ImageSize = (ImageWidth/(PoolingN**2))**2;
+
 
     localparam [C1KernelBitSize*(N*N)-1:0] C1kernel [C1NumberOfK-1:0]
                         = {18'b000110110001101100,
@@ -62,15 +69,23 @@ module TB_top;
     
     
     // CHANGE THIS TO DNN OUTPUTS
-    logic                                           out_ready;
-    logic [C2NumberOfK-1:0]                         out_valid;
-    logic [C2ProcessingElements-1:0][BitSize-1:0]   out_data;
+    logic                               out_ready;
+    logic                               out_valid;
+    logic [LLN[0]-1:0][BitSize-1:0]     out_data;
+    logic                               out_done;
 
     logic [ImageWidth*ImageWidth-1:0][BitSize-1:0]  test_image;
     logic [BitSize-1:0]                             a;
     logic [BitSize-1:0]                             b;
     logic [BitSize-1:0]                             c;
     logic [BitSize-1:0]                             d;
+
+    logic [M_W_BitSize-1:0] A;
+    logic [M_W_BitSize-1:0] B;
+    logic [M_W_BitSize-1:0] C;
+    logic [M_W_BitSize-1:0] D;
+
+    logic [MaxNumNerves-1:0][M_W_BitSize-1:0] in_weights;
 
 
 
@@ -79,24 +94,26 @@ module TB_top;
     .C1KernelBitSize(C1KernelBitSize), .C2KernelBitSize(C2KernelBitSize),
     .C1kernel(C1kernel), .C2kernel(C2kernel),
     // dnn top parameters
-    .M_W_BitSize (), .NumLayers(), .MaxNumNerves(),
-    .LWB(), .LNN()
+    .M_W_BitSize (M_W_BitSize), .NumLayers(NumLayers), .MaxNumNerves(MaxNumNerves),
+    .LWB(LWB), .LNN(LLN)
     ) top (
         .clk(clk),
         .res_n(res_n),
         .in_valid(in_valid),
         .in_data(in_data),
-        .in_weights(),
-        .out_ready(),
-        .out_data(),
-        .out_valid(),
-        .out_done()
+        .in_weights(in_weights),
+        .out_ready(out_ready),
+        .out_data(out_data),
+        .out_valid(out_valid),
+        .out_done(out_done)
     );
 
 
     initial
     begin
         // $monitor("@ %0t:\n\t\t%b %b\n %b", $time);
+
+        // CNN component set-up
         a = 4'b0111;
         b = 4'b0010;
         c = 4'b1111;
@@ -109,11 +126,45 @@ module TB_top;
                         d, d, c, a, c, a, c, a,
                         c, b, d, d, d, d, b, c,
                         b, b, c, c, a, d, c, b};
+
+        // DNN compnent set-up
+        A = 4'b0001;
+        B = 4'b0010;
+        C = 4'b0011;
+        D = 4'b0000;
+        weights0 = {{C, B},
+                    {A, C},
+                    {B, C},
+                    {A, B}};
+
+        weights1 = {{C, B, C},
+                    {A, B, C}};
+
         res_n = 0;
         clk = 1;
         #2
         res_n = 1;
         clk = 0;
+
+
+        // starting the weight loading process on next posedge clock
+        for (int i = 0; i < ImageSize; i = i + 1) begin
+            #10
+            in_weight = {weights0[i], M_W_BitSize'(0)}; // in_weight = {weights0[ImageSize-1-i], M_W_BitSize'(0)};
+            clk = 1;
+            #10
+            res_n = 1;
+            clk = 0;
+        end
+
+        for (int i = 0; i < LNN[1]; i = i + 1) begin
+            #10
+            in_weight = {weights1[i]};                     // in_weight = {weights1[LNN[1]-1-i]};
+            clk = 1;
+            #10
+            clk = 0;
+        end
+        // loading in weights  done
       
 
 
