@@ -15,8 +15,12 @@ module mem_module #(NumberOfK = 4, BitSize = 32, ProcessingElements = 2, ImageWi
         output logic                image_done
     );
 
+
     localparam TotalPixels = (ImageWidth**2);
     localparam ZEROS = 32 - BitSize;
+    
+    logic out_valid_c;
+    logic out_valid_r;
 
     logic [31:0] addra;
     logic [31:0] addrb;
@@ -55,9 +59,10 @@ module mem_module #(NumberOfK = 4, BitSize = 32, ProcessingElements = 2, ImageWi
 
 
 
-    assign addra = (!read_mode_r)?(tempA*(ImageWidth**2) + pixel_count_r):{{32{1'b0}},pixel_count_r};
-    assign addrb = tempB * (ImageWidth**2) + pixel_count_r;
+    assign addra = (!read_mode_r)?(tempA*(ImageWidth**2) + pixel_count_c):{{32{1'b0}},pixel_count_c};
+    assign addrb = tempB * (ImageWidth**2) + pixel_count_c;
 
+    assign out_valid = out_valid_r;
 
 
     blk_mem_gen_0 bram (
@@ -85,7 +90,7 @@ module mem_module #(NumberOfK = 4, BitSize = 32, ProcessingElements = 2, ImageWi
         image_done = image_done_r;
         wea = 4'b0000;
         web = 4'b0000;
-        out_valid = 0;
+        out_valid_c = 0;
         kernel_count_c = kernel_count_r;
         pixel_count_c = pixel_count_r;
         read_mode_c = read_mode_r;
@@ -105,7 +110,7 @@ module mem_module #(NumberOfK = 4, BitSize = 32, ProcessingElements = 2, ImageWi
                 begin
                     pixel_count_c = 0;
                     read_mode_c = 1;
-                    out_valid  = 1;
+                    out_valid_c  = 1;
                     image_done = 0;
                 end
             end
@@ -117,12 +122,12 @@ module mem_module #(NumberOfK = 4, BitSize = 32, ProcessingElements = 2, ImageWi
                 if((pixel_count_c+1)%(TotalPixels) == 0 && pooling_done_r==0)// && pixel_count_c!=0)
                 begin
                     image_done = 1;
-                    out_valid = 0;
+                    out_valid_c = 0;
                 end
                 else
                 begin
                     pixel_count_c = pixel_count_c + 1;
-                    out_valid = 1;
+                    out_valid_c = 1;
                     image_done = 0;
                 end
             end
@@ -138,6 +143,7 @@ module mem_module #(NumberOfK = 4, BitSize = 32, ProcessingElements = 2, ImageWi
             read_mode_r <= 0;
             image_done_r <= 1;
             pooling_done_r <= 0;
+            out_valid_r <= 0;
       	end
     	else
       	begin
@@ -146,6 +152,7 @@ module mem_module #(NumberOfK = 4, BitSize = 32, ProcessingElements = 2, ImageWi
             read_mode_r <= read_mode_c;
             image_done_r <= image_done;
             pooling_done_r <= pooling_done;
+            out_valid_r <= out_valid_c;
         end
   	end
 endmodule
