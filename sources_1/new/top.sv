@@ -3,7 +3,7 @@
 module top #(
     // convolution + pooling layer(s) top parameters
     N = 3, BitSize = 32, ImageWidth = 8, PoolingN = 2, 
-    C1NumberOfK = 4, C2NumberOfK = 8, C2ProcessingElements = 4,
+    C1NumberOfK = 4, C2NumberOfK = 4, C2ProcessingElements = 2,
     C1KernelBitSize = 4, C2KernelBitSize = 4,
     [C1KernelBitSize*(N*N)-1:0] C1kernel [C1NumberOfK-1:0] = {'0,'0,'0,'0},
     [C2KernelBitSize*(N*N)-1:0] C2kernel [C2NumberOfK-1:0] = {'0,'0,'0,'0},
@@ -32,6 +32,10 @@ module top #(
     logic [C2NumberOfK-1:0]                           C2_out_valid;
     logic [C2ProcessingElements-1:0][BitSize-1:0]       C2_out_data;
     logic C2_out_set_done;
+    logic out_ready_conv;
+    logic out_ready_dnn;
+
+    assign out_ready = out_ready_conv & out_ready_dnn;
 
     conv_pooling_top #(.N(N), .BitSize(BitSize), .ImageWidth(ImageWidth), .Stride(PoolingN),
         .C1CyclesPerPixel(C1CyclesPerPixel), .C2CyclesPerPixel(C2CyclesPerPixel),
@@ -43,7 +47,7 @@ module top #(
         .res_n(res_n),
         .in_valid(in_valid),
         .in_data(in_data),
-        .out_ready(out_ready),
+        .out_ready(out_ready_conv),
         .out_valid(C2_out_valid),
         .out_data(C2_out_data),
         .out_set_done(C2_out_set_done)
