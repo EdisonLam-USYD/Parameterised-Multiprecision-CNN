@@ -1,7 +1,7 @@
 module TB_conv_pooling_top;
 
     localparam BitSize = 4;
-    localparam N = 2;
+    localparam N = 3;
     localparam ImageWidth = 8;
     localparam Stride = 2;
     //localparam K = 2;
