@@ -62,7 +62,7 @@ module TB_mem;
         #5
         res_n = 1;
         clk = 0;
-
+        
         // loading in the values
         for (int i = 0 ; i < iw*iw; i = i + 1) begin
             for (int j = 0; j < (nok/npe); j = j + 1) begin
@@ -70,12 +70,13 @@ module TB_mem;
                 if (j == 0) in_valid = {1'b0, 1'b0, 1'b1, 1'b1};
                 else if (j == 1) in_valid = {1'b1, 1'b1, 1'b0, 1'b0};
                 else in_valid = '0;
-                in_data = {images[j%nok][iw*iw-i-1], images[(npe*j + 1)%nok][iw*iw-i-1]};
+                in_data = {images[j*npe][iw*iw-i-1], images[(npe*j + 1)%nok][iw*iw-i-1]};
                 clk = 1;
                 #10
                 clk = 0;
             end
         end
+        in_data = '0;
         for (int i = 0; i < iw*iw*nok+1; i = i + 1) begin
             #10
             clk = 1;

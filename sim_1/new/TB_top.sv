@@ -24,8 +24,10 @@ module TB_top;
 
 
     localparam BitSize = 4;
-    localparam N = 2;
+    localparam N = 3;
     localparam ImageWidth = 8;
+
+    // conv + pooling params
     localparam Stride = 2;
     
     localparam C1CyclesPerPixel = 2;
@@ -39,10 +41,10 @@ module TB_top;
 
     localparam MaxNumNerves         = 3;
     localparam M_W_BitSize          = 4;
-    localparam NumLayers            = 3;
+    localparam NumLayers            = 2;
     localparam integer LNN [NumLayers-1:0]    = '{2, 3};
     localparam integer LWB [NumLayers-1:0]    = '{4, 2};
-    localparam ImageSize = (ImageWidth/(PoolingN**2))**2;
+    localparam ImageSize = (ImageWidth/(Stride**2))**2;
 
 
     localparam [C1KernelBitSize*(N*N)-1:0] C1kernel [C1NumberOfK-1:0]
@@ -71,7 +73,7 @@ module TB_top;
     // CHANGE THIS TO DNN OUTPUTS
     logic                               out_ready;
     logic                               out_valid;
-    logic [LLN[0]-1:0][BitSize-1:0]     out_data;
+    logic [LNN[0]-1:0][BitSize-1:0]     out_data;
     logic                               out_done;
 
     logic [ImageWidth*ImageWidth-1:0][BitSize-1:0]  test_image;
@@ -85,23 +87,25 @@ module TB_top;
     logic [M_W_BitSize-1:0] C;
     logic [M_W_BitSize-1:0] D;
 
-    logic [MaxNumNerves-1:0][M_W_BitSize-1:0] in_weights;
+    logic [MaxNumNerves-1:0][M_W_BitSize-1:0] in_weight;
+    logic [ImageSize-1:0][LNN[1]-1:0][M_W_BitSize-1:0] weights0;
+    logic [LNN[1]-1:0][LNN[0]-1:0][M_W_BitSize-1:0] weights1;
 
 
 
-    top #(.N(), .BitSize(BitSize), .ImageWidth(ImageWidth), .PoolingN(), 
-    .C1NumberOfK(C1NumberOfK), .C2NumberofK(C2NumberOfK), .C2ProcessingElements(C2ProcessingElements),
+    top #(.N(), .BitSize(BitSize), .ImageWidth(ImageWidth), .PoolingN(Stride), 
+    .C1NumberOfK(C1NumberOfK), .C2NumberOfK(C2NumberOfK), .C2ProcessingElements(C2ProcessingElements),
     .C1KernelBitSize(C1KernelBitSize), .C2KernelBitSize(C2KernelBitSize),
     .C1kernel(C1kernel), .C2kernel(C2kernel),
     // dnn top parameters
     .M_W_BitSize (M_W_BitSize), .NumLayers(NumLayers), .MaxNumNerves(MaxNumNerves),
-    .LWB(LWB), .LNN(LLN)
+    .LWB(LWB), .LNN(LNN)
     ) top (
         .clk(clk),
         .res_n(res_n),
         .in_valid(in_valid),
         .in_data(in_data),
-        .in_weights(in_weights),
+        .in_weights(in_weight),
         .out_ready(out_ready),
         .out_data(out_data),
         .out_valid(out_valid),
