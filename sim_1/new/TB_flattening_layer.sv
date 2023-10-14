@@ -29,7 +29,7 @@ module TB_flattening_layer;
     
     flattening_layer #(.BitSize(BitSize), .ImageSize(ImageSize), .NumOfImages(NumOfImages), 
         .NumOfInputs(NumOfInputs), .CyclesPerPixel(CyclesPerPixel))
-        f_layer0 (.clk(clk), .res_n(res_n), .in_valid(in_valid), .in_data(in_data), 
+        f_layer0 (.clk(clk), .res_n(res_n), .in_valid(in_valid), .in_data(in_data),
         .out_ready(out_ready), .out_valid(out_valid), .out_data(out_data));
 
     int j;
@@ -69,16 +69,12 @@ module TB_flattening_layer;
             end
         end
         for (i = 0; i < ImageSize; i = i + 1) begin
-            for (j = 0; j < CyclesPerPixel; j = j + 1) begin
-                #10
-                if (j == 0) in_valid = {1'b1, 1'b1, 1'b0, 1'b0};
-                else if (j == 1) in_valid = {1'b0, 1'b0, 1'b1, 1'b1};
-                else in_valid = '0;
-                in_data = '0;
-                clk = 1;
-                #10
-                clk = 0;
-            end
+            #10
+            in_valid = '0;
+            in_data = '0;
+            clk = 1;
+            #10
+            clk = 0;
         end
     end
 endmodule

@@ -57,14 +57,46 @@ module top #(
         .BitSize(BitSize), .M_W_BitSize(M_W_BitSize), .NumIn(C2ProcessingElements), .MaxNumNerves(MaxNumNerves), .NumOfImages(C2NumberOfK), // only does C2NumberOfK before requiring a reset
       .CyclesPerPixel(C2CyclesPerPixel), .ImageSize((ImageWidth/(PoolingN**2))**2), .NumLayers(NumLayers), .LWB(LWB), .LNN(LNN) 
     ) dnn_inst (
-        .clk(clk), .res_n(res_n), .in_fl_res(C2_out_set_done), .in_valid(C2_out_valid), .in_data(C2_out_data), .in_weights(in_weights), //. in_w_en(1),
+        .clk(clk), .res_n(res_n), .in_fl_res(in_fl_res), .in_valid(dnn_in_valid), .in_data(dnn_in_data), .in_weights(in_weights), //. in_w_en(1),
         .out_ready(out_ready_dnn), .out_data(out_data), .out_valid(out_valid), .out_done(out_done)
     );
 
+    logic [$clog2(C2NumberOfK)-1:0] in_fl_counter_r;
+    logic [$clog2(C2NumberOfK)-1:0] in_fl_counter_c;
+    logic in_fl_res;
+
+
     always_ff @(posedge clk) begin
-        dnn_in_valid    <= C2_out_valid;
-        dnn_in_data     <= C2_out_data;
-        dnn_in_set_done <= C2_out_set_done;
+        if (!res_n) begin
+            in_fl_counter_r <= '0;
+            dnn_in_valid    <= '0;
+            dnn_in_data     <= '0;
+            dnn_in_set_done <= 0;
+            in_fl_res       <= 0;
+        end
+        else begin
+            in_fl_counter_r <= in_fl_counter_c;
+            dnn_in_valid    <= {<<{C2_out_valid}};
+            dnn_in_data     <= C2_out_data;
+            dnn_in_set_done <= C2_out_set_done;
+            in_fl_res       <= (in_fl_counter_r == C2NumberOfK - 1) ? 1 : 0;
+        end
+    end
+
+    always_comb begin
+        in_fl_counter_c = in_fl_counter_r;
+        case (in_fl_counter_c)
+            C2NumberOfK : begin
+                in_fl_counter_c = 0;
+            end
+            '0          : begin
+                in_fl_counter_c = (dnn_in_set_done) ? in_fl_counter_c + 1 : 0;
+            end
+            default     : begin
+                in_fl_counter_c = in_fl_counter_c + 1;
+            end
+        endcase
+            
     end
 
 endmodule

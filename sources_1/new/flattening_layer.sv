@@ -22,7 +22,6 @@ module flattening_layer #(BitSize = 2, ImageSize = 9, NumOfImages = 4, NumOfInpu
     output logic [ImageSize-1:0][BitSize-1:0] out_data
 );
 
-// localparam T_INPUTS = NumOfInputs; // True Number of inputs [number of conv/pooling stages * Number of processsing elems per input]
 
 logic [NumOfImages-1:0] done_check_r; // if all are done, then out_ready = 0
 logic [NumOfImages-1:0] done_check_c;
@@ -32,10 +31,8 @@ logic [$clog2(CyclesPerPixel):0] counter_cycles_c; // individual clock cycles fo
 logic [$clog2(CyclesPerPixel):0] counter_cycles_r;
 logic out_ready_c;
 logic start_latch;
-// logic [T_INPUTS-1:0] debug_input_taken;
 
 logic [ImageSize-1:0][BitSize-1:0] tot_agent [NumOfImages-1:0];
-// integer tot_agent [NumOfImages-1:0];
 
 genvar i;
 generate 
@@ -48,8 +45,7 @@ generate
         assign in_fpe = (out_ready) ? in_data[NumOfInputs-1-(i%NumOfInputs)] : BitSize'(0);
 
         flattening_pe #(.BitSize(BitSize), .ImageSize(ImageSize), .Delay(i)) flat_pe 
-            (.clk(clk), .res_n(res_n), .in_valid(in_valid[NumOfImages-1-i]), .in_data(in_fpe), .out_data(out), .out_done(done_check_c[NumOfImages-1-i]));
-            // not sure if out_valid and out_done will be used
+            (.clk(clk), .res_n(res_n), .in_valid(in_valid[NumOfImages-1-i] || !out_ready), .in_data(in_fpe), .out_data(out), .out_done(done_check_c[NumOfImages-1-i]));
         // in_valid[NumOfImages-1-i] || done_check_r[NumOfImages-1-i]  --  for in_valid  -- wrong for now
         
 
@@ -89,6 +85,11 @@ begin
             out_ready_c = 0;
         end
     end
+    else if (!out_ready) begin // turn into 1 cycle per pixel after all inputs are taken
+        counter_tot_c_c = counter_tot_c_c + 1;
+        out_valid = 1;
+        out_start = 0;
+    end
 end
 
 always_ff @(posedge clk) 
@@ -100,7 +101,6 @@ begin
         counter_cycles_r    <= 0;
         out_ready           <= 1;
         start_latch         <= 0;
-        // debug_input_taken = 0;
     end
     else
     begin
@@ -109,7 +109,6 @@ begin
         counter_tot_c_r = counter_tot_c_c;
         counter_cycles_r = counter_cycles_c;
         start_latch <= (counter_tot_c_c >= NumOfImages) ? 1 : start_latch;
-        // debug_input_taken = ($signed(debug_input_taken) != -1) ? debug_input_taken | in_valid : T_INPUTS'(0); 
 
     end
 end
