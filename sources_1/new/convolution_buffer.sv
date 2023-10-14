@@ -86,8 +86,7 @@ module convolution_buffer #(N = 3, BitSize=32, ImageWidth = 4)
 		begin
         	image_pos_c = (image_pos_r >= PaddingCond_2) ? 0 : image_pos_r + 1;
 			image_row_c = (image_pos_r >= PaddingCond_2) ? image_row_r + 1: image_row_r;
-			data_stream_c = (out_ready) ? {data_stream_r[StreamSize-2:0], in_data} : {data_stream_r[StreamSize-2:0], BitSize'(0)};
-
+			data_stream_c = {data_stream_r[StreamSize-2:0], in_data}; // (out_ready) ? {data_stream_r[StreamSize-2:0], in_data} : {data_stream_r[StreamSize-2:0], BitSize'(0)};
 			// if (((image_pos_c >= PaddingCond_1 && image_row_c == PaddingCond_1) || image_row_c > PaddingCond_1) && done_counter < StreamSize)
 			if ((image_pos_c >= PaddingCond_1 && image_row_c == PaddingCond_1) || image_row_c > PaddingCond_1)
 			begin
