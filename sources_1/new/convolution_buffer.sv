@@ -80,11 +80,12 @@ module convolution_buffer #(N = 3, BitSize=32, ImageWidth = 4)
 		out_window_c 	= out_window_r;
 		// done_c = 0;
 
-		if (in_valid || image_row_c >= ImageWidth)
+		if (image_row_r > PaddingCond_2 || (image_row_r == PaddingCond_2 && image_pos_r >= PaddingCond_2 - 1)) out_ready = 0;
+
+		if (in_valid || !out_ready)
 		begin
         	image_pos_c = (image_pos_r >= PaddingCond_2) ? 0 : image_pos_r + 1;
 			image_row_c = (image_pos_r >= PaddingCond_2) ? image_row_r + 1: image_row_r;
-			if (image_row_r > PaddingCond_2) out_ready = 0;
 			data_stream_c = (out_ready) ? {data_stream_r[StreamSize-2:0], in_data} : {data_stream_r[StreamSize-2:0], BitSize'(0)};
 
 			// if (((image_pos_c >= PaddingCond_1 && image_row_c == PaddingCond_1) || image_row_c > PaddingCond_1) && done_counter < StreamSize)

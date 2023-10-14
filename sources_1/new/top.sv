@@ -30,7 +30,7 @@ module top #(
 
 
     logic [C2NumberOfK-1:0]                           C2_out_valid;
-    logic [C2ProcessingElements:0][BitSize-1:0]       C2_out_data;
+    logic [C2ProcessingElements-1:0][BitSize-1:0]       C2_out_data;
     logic C2_out_set_done;
     logic out_ready_conv;
     logic out_ready_dnn;
@@ -54,7 +54,7 @@ module top #(
     );
 
     logic [C2NumberOfK-1:0]                     dnn_in_valid;
-    logic [C2ProcessingElements:0][BitSize-1:0] dnn_in_data;
+    logic [C2ProcessingElements-1:0][BitSize-1:0] dnn_in_data;
     logic                                       dnn_in_set_done;
 
     dnn_top #(
