@@ -96,14 +96,15 @@ module systolic_array #(BitSize = 8, M_W_BitSize = 4, Weight_BitSize = 2, NumOfI
     always_ff @(posedge clk) begin
         if (!res_n) begin
             counter_w       <= 'b0;
-            done_check[0]   <= 'b0;
+            done_check      <= 'b0;
             done_latch      <= 'b0;
         end
         else begin
             if ((counter_w < NumOfInputs + 1) /*&& in_w_en*/) begin
                 counter_w   <= counter_w + 1;
             end
-            done_check[0]   <= in_start && in_valid;
+            if (in_valid) done_check      <= {done_check, in_start && in_valid};
+            // done_check[0]   <= in_start && in_valid;
             done_latch      <= (!in_start) ? ((out_valid) ? 1 : done_latch) : 0;
         end
     end 
@@ -111,7 +112,7 @@ module systolic_array #(BitSize = 8, M_W_BitSize = 4, Weight_BitSize = 2, NumOfI
     // condition for when there is output: counter_in_r > NumOfInputs + NumOfNerves
     always_comb begin
         t_in_data = in_data;
-        en_l_b = (counter_w + 1 == NumOfInputs) ? 1'b1 : 1'b0;
+        en_l_b = (counter_w == NumOfInputs) ? 1'b1 : 1'b0;
         out_ready = (counter_w + 1 > NumOfInputs) ? 1'b1 : 1'b0;        // out_ready is on when all weights are loaded in
         out_done  = (done_latch && in_valid && !out_valid) ? 1 : 0;
         // out_data = out_array;
@@ -165,19 +166,6 @@ module systolic_array #(BitSize = 8, M_W_BitSize = 4, Weight_BitSize = 2, NumOfI
         end
     endgenerate
 
-    // generating counter pipeline to show out_done
-    generate;
-        for (genvar l = 1; l < NumOfNerves + NumOfInputs; l = l + 1) begin : start_pl
-            always_ff @(posedge clk) begin
-                if (!res_n) begin 
-                    done_check[l] <= 1'b0;
-                end
-                else if (in_valid) begin
-                    done_check[l] <= done_check[l-1];
-                end
-            end
-        end
-    endgenerate
 
     
 endmodule
