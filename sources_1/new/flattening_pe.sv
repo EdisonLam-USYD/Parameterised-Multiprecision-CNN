@@ -31,11 +31,16 @@ module flattening_pe #(BitSize = 2, ImageSize = 9, Delay = 0)
         if (in_valid)
         begin
             // counter_c = (ImageSize - 1 != counter_r) ? counter_r + 1 : 0;
+            // out_data = '0;
+            // if (counter_c >= Delay) out_data[ImageSize-counter_c+Delay] =  in_data_c;
             counter_c = counter_r + 1;
-            if (counter_c >= Delay) out_data[ImageSize-counter_c+Delay] =  in_data_c;
+            // if (counter_c >= Delay) out_data[ImageSize-counter_c+Delay] =  in_data_c;
             out_done = ((counter_c >= ImageSize + Delay) && !done_latch) ? 1 : 0;
         end
-        else if (counter_c >= Delay) out_data[ImageSize-counter_c+Delay] =  in_data_c;
+        // else if (counter_c >= Delay) begin
+        //     out_data = '0;
+        //     out_data[ImageSize-counter_c+Delay] =  in_data_c;
+        // end
     end
 
     always_ff @(posedge clk) begin

@@ -87,7 +87,7 @@ begin
     end
     else if (!out_ready) begin // turn into 1 cycle per pixel after all inputs are taken
         counter_tot_c_c = counter_tot_c_c + 1;
-        out_valid = 1;
+        out_valid = (counter_tot_c_c != ImageSize + 1) ? 1 : 0;
         out_start = 0;
     end
 end

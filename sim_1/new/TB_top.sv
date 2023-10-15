@@ -147,15 +147,15 @@ module TB_top;
         res_n = 0;
         clk = 1;
         #2
-        res_n = 1;
         clk = 0;
+        res_n = 1;
 
 
         // starting the weight loading process on next posedge clock
         for (int i = 0; i < ImageSize; i = i + 1) begin
             #10
-            in_weight = {weights0[i], M_W_BitSize'(0)}; // in_weight = {weights0[ImageSize-1-i], M_W_BitSize'(0)};
             clk = 1;
+            in_weight = {weights0[i], M_W_BitSize'(0)}; // in_weight = {weights0[ImageSize-1-i], M_W_BitSize'(0)};
             #10
             res_n = 1;
             clk = 0;
@@ -163,8 +163,8 @@ module TB_top;
 
         for (int i = 0; i < LNN[1]; i = i + 1) begin
             #10
-            in_weight = {weights1[i]};                     // in_weight = {weights1[LNN[1]-1-i]};
             clk = 1;
+            in_weight = {weights1[i]};                     // in_weight = {weights1[LNN[1]-1-i]};
             #10
             clk = 0;
         end
