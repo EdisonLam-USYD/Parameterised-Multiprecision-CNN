@@ -45,34 +45,34 @@ module TB_flattening_layer;
         d = {BitSize'(1), BitSize'(1), BitSize'(1), BitSize'(1)};
         inputs = {a, b, c, d};
 
-        res_n = 0;
         clk = 0;
+        res_n = 0;
         #5
         clk = 1;
         in_valid = 0;
         #5
-        res_n = 1;
         clk = 0;
+        res_n = 1;
 
         $monitor("@%0t: out = %p, %p -> %b", $time, out_data, f_layer0.tot_agent, f_layer0.tot_agent.or());
 
         for (i = 0; i < ImageSize; i = i + 1) begin
             for (j = 0; j < CyclesPerPixel; j = j + 1) begin
                 #10
+                clk = 1;
                 if (j == 0) in_valid = {1'b1, 1'b1, 1'b0, 1'b0};
                 else if (j == 1) in_valid = {1'b0, 1'b0, 1'b1, 1'b1};
                 else in_valid = '0;
                 in_data = {inputs[(j % NumOfImages)][ImageSize - i - 1], inputs[((j + 2) % NumOfImages)][ImageSize - i - 1]};
-                clk = 1;
                 #10
                 clk = 0;
             end
         end
         for (i = 0; i < ImageSize; i = i + 1) begin
             #10
+            clk = 1;
             in_valid = '0;
             in_data = '0;
-            clk = 1;
             #10
             clk = 0;
         end

@@ -25,8 +25,8 @@ module flattening_layer #(BitSize = 2, ImageSize = 9, NumOfImages = 4, NumOfInpu
 
 logic [NumOfImages-1:0] done_check_r; // if all are done, then out_ready = 0
 logic [NumOfImages-1:0] done_check_c;
-logic [$clog2(ImageSize):0] counter_tot_c_c; // total cycles
-logic [$clog2(ImageSize):0] counter_tot_c_r;
+logic [$clog2(ImageSize)+1:0] counter_tot_c_c; // total cycles
+logic [$clog2(ImageSize)+1:0] counter_tot_c_r;
 logic [$clog2(CyclesPerPixel):0] counter_cycles_c; // individual clock cycles for out_valid
 logic [$clog2(CyclesPerPixel):0] counter_cycles_r;
 logic out_ready_c;
@@ -88,7 +88,8 @@ begin
     else if (!out_ready) begin // turn into 1 cycle per pixel after all inputs are taken
         counter_tot_c_c = counter_tot_c_c + 1;
         out_valid = (counter_tot_c_c != ImageSize + 1) ? 1 : 0;
-        out_start = 0;
+        // out_start = (counter_tot_c_c != ImageSize + 1 && ) ? 0;
+        out_start = (out_valid && !start_latch) ? 1 : 0;
     end
 end
 
@@ -108,7 +109,7 @@ begin
         done_check_r = done_check_c | done_check_r;
         counter_tot_c_r = counter_tot_c_c;
         counter_cycles_r = counter_cycles_c;
-        start_latch <= (counter_tot_c_c >= NumOfImages) ? 1 : start_latch;
+        start_latch <= (counter_tot_c_c > NumOfImages) ? 1 : start_latch;
 
     end
 end
