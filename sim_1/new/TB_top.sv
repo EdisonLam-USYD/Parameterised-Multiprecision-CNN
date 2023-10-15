@@ -39,10 +39,10 @@ module TB_top;
     localparam C2KernelBitSize  = 4;
     localparam C2ProcessingElements = 2;
 
-    localparam MaxNumNerves         = 3;
+    localparam MaxNumNerves         = 4;
     localparam M_W_BitSize          = 4;
     localparam NumLayers            = 2;
-    localparam integer LNN [NumLayers-1:0]    = '{2, 3};
+    localparam integer LNN [NumLayers-1:0]    = '{2, 4};
     localparam integer LWB [NumLayers-1:0]    = '{4, 2};
     localparam ImageSize = (ImageWidth/(Stride**2))**2;
 
@@ -88,8 +88,8 @@ module TB_top;
     logic [M_W_BitSize-1:0] D;
 
     logic [MaxNumNerves-1:0][M_W_BitSize-1:0] in_weight;
-    logic [ImageSize-1:0][LNN[1]-1:0][M_W_BitSize-1:0] weights0;
-    logic [LNN[1]-1:0][LNN[0]-1:0][M_W_BitSize-1:0] weights1;
+    logic [ImageSize-1:0][LNN[1]-1:0][M_W_BitSize-1:0] weights0;    // [Number of Flattened inputs][Number in this layer][BitSize of Weights]
+    logic [LNN[1]-1:0][LNN[0]-1:0][M_W_BitSize-1:0] weights1;       // [Number of nerves within last layer][Number in this layer][BitSize of Weights]
 
 
 
@@ -136,13 +136,13 @@ module TB_top;
         B = 4'b0010;
         C = 4'b0011;
         D = 4'b0000;
-        weights0 = {{C, B},
-                    {A, C},
-                    {B, C},
-                    {A, B}};
+        weights0 = {{A, D},
+                    {D, A},
+                    {D, D},
+                    {D, D}};
 
-        weights1 = {{C, B, C},
-                    {A, B, C}};
+        weights1 = {{A, D, A, D},
+                    {D, A, D, A}};
 
         res_n = 0;
         clk = 1;
@@ -155,7 +155,7 @@ module TB_top;
         for (int i = 0; i < ImageSize; i = i + 1) begin
             #10
             clk = 1;
-            in_weight = {weights0[i], M_W_BitSize'(0)}; // in_weight = {weights0[ImageSize-1-i], M_W_BitSize'(0)};
+            in_weight = {weights0[i], M_W_BitSize'(0), M_W_BitSize'(0)}; // in_weight = {weights0[ImageSize-1-i], M_W_BitSize'(0)};
             #10
             res_n = 1;
             clk = 0;

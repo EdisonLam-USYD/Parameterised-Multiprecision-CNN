@@ -65,8 +65,8 @@ module top #(
         .out_ready(out_ready_dnn), .out_data(out_data), .out_valid(out_valid), .out_done(out_done)
     );
 
-    logic [$clog2(C2NumberOfK)-1:0] in_fl_counter_r;
-    logic [$clog2(C2NumberOfK)-1:0] in_fl_counter_c;
+    logic [$clog2(C2NumberOfK + MaxNumNerves)+1:0] in_fl_counter_r;
+    logic [$clog2(C2NumberOfK + MaxNumNerves)+1:0] in_fl_counter_c;
     logic in_fl_res;
 
 
@@ -83,14 +83,14 @@ module top #(
             dnn_in_valid    <= {<<{C2_out_valid}};
             dnn_in_data     <= C2_out_data;
             dnn_in_set_done <= C2_out_set_done;
-            in_fl_res       <= (in_fl_counter_r == C2NumberOfK - 1) ? 1 : 0;
+            in_fl_res       <= (in_fl_counter_r == C2NumberOfK + MaxNumNerves) ? 1 : 0;
         end
     end
 
     always_comb begin
         in_fl_counter_c = in_fl_counter_r;
         case (in_fl_counter_c)
-            C2NumberOfK : begin
+            C2NumberOfK + MaxNumNerves + 2: begin
                 in_fl_counter_c = 0;
             end
             '0          : begin
