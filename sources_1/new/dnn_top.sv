@@ -74,6 +74,16 @@ module dnn_top
     logic [NumLayers-1:0] weight_en; // hot encoding
     logic [NumLayers-1:0] weight_en_posedge; 
 
+    logic fl_out_ready_p;
+    logic fl_out_valid_p;
+    logic fl_out_start_p;
+
+    always_ff @(posedge clk) begin
+        fl_out_ready_p  <= fl_out_ready;
+        fl_out_valid_p  <= fl_out_valid;
+        fl_out_start_p  <= fl_out_start;
+    end
+
     genvar i;
     generate 
         for (i = 0; i < NumLayers; i = i + 1) begin : layer
@@ -102,7 +112,7 @@ module dnn_top
             if (i == 0) begin
                 // out_ready can be used to signal which array has not been loaded yet
                 systolic_array #(.BitSize(BitSize), .Weight_BitSize(LWB[NumLayers-1-i]), .M_W_BitSize(M_W_BitSize), .NumOfInputs(ImageSize), .NumOfNerves(LNN[NumLayers-1-i])) 
-                    layer1 (.clk(clk), .res_n(res_n/*weight_en_posedge[NumLayers-1-i]*/), .in_valid(fl_out_valid), .in_start(fl_out_start), .in_data(fl_out_data), //.in_w_en(in_w_en), 
+                    layer1 (.clk(clk), .res_n(res_n/*weight_en_posedge[NumLayers-1-i]*/), .in_valid(fl_out_valid_p), .in_start(fl_out_start_p), .in_data(fl_out_data_p), //.in_w_en(in_w_en), 
                     .in_weights(in_weights[MaxNumNerves-1:MaxNumNerves-LNN[NumLayers-1-i]]), .in_partial_sum('0 /*in_partial_sum*/), 
                     .out_ready(nl_out_ready), .out_valid(nl_out_valid), .out_done(nl_out_done), .out_data(nl_out), .out_start(nl_out_start));
 

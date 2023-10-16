@@ -77,7 +77,7 @@ module systolic_array #(BitSize = 8, M_W_BitSize = 4, Weight_BitSize = 2, NumOfI
 
     // takes BlockSize cycles to load in all b values
     logic en_l_b;
-    integer counter_w;                          // counts the loading of the weights for each of the nerves (NumOfInputs times)
+    logic [$clog2(NumOfInputs)+1:0] counter_w;                          // counts the loading of the weights for each of the nerves (NumOfInputs times)
 
     logic [NumOfInputs-1:0][BitSize-1:0]        t_in_data;    // transformed version of in_data for easier input
     logic [NumOfNerves-1:0][M_W_BitSize-1:0]    in_w;
