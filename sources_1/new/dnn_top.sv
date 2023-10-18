@@ -1,11 +1,11 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
-// Engineer: 
+// Engineer: Edison Lam
 // 
-// Create Date: 05.08.2023
+// Create Date: 30.09.2023
 // Design Name: 
-// Module Name: convolution_buffer
+// Module Name: dnn_top
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -31,8 +31,9 @@
 // )
 module dnn_top 
 #(
-    BitSize = 8, M_W_BitSize = 16, NumIn = 4, NumLayers = 4, MaxNumNerves = 6, NumOfImages = 4,
-    CyclesPerPixel = 4, ImageSize = 16, integer LWB [NumLayers-1:0] = '{4, 2, 4, 8}, integer LNN [NumLayers-1:0] = '{2, 3, 5, 6})
+    BitSize = 8, M_W_BitSize = 4, NumIn = 4, NumLayers = 2, MaxNumNerves = 5, NumOfImages = 4,
+    CyclesPerPixel = 4, ImageSize = 4, integer LWB [NumLayers-1:0] = '{4, 2}, integer LNN [NumLayers-1:0] = '{2, 5}
+)
 (
     input                                       clk,
     input                                       res_n,
@@ -67,21 +68,23 @@ module dnn_top
         .out_data(fl_out_data), .out_start(fl_out_start));
 
 
-    integer weight_timer_c;
-    integer weight_timer_r;
-    integer weight_counter_c;
-    integer weight_counter_r;
-    logic [NumLayers-1:0] weight_en; // hot encoding
-    logic [NumLayers-1:0] weight_en_posedge; 
+    logic [$clog2(MaxNumNerves)+1:0]    weight_timer_c;
+    logic [$clog2(MaxNumNerves)+1:0]    weight_timer_r;
+    logic [$clog2(NumLayers):0]         weight_counter_c;
+    logic [$clog2(NumLayers):0]         weight_counter_r;
+    logic [NumLayers-2:0]               weight_en; // hot encoding
+    logic [NumLayers-2:0]               weight_en_posedge; 
 
     logic fl_out_ready_p;
     logic fl_out_valid_p;
     logic fl_out_start_p;
+    logic [ImageSize-1:0][BitSize-1:0] fl_out_data_p;
 
     always_ff @(posedge clk) begin
         fl_out_ready_p  <= fl_out_ready;
         fl_out_valid_p  <= fl_out_valid;
         fl_out_start_p  <= fl_out_start;
+        fl_out_data_p   <= fl_out_data;
     end
 
     genvar i;
@@ -145,26 +148,27 @@ module dnn_top
     logic weight_counter_res;
     always_comb begin
         // if (in_w_en) begin
-        weight_timer_c = weight_timer_r + 1;
-        weight_counter_c = weight_counter_r;
-        weight_counter_res = 0;
-        weight_en_posedge = '1;
+        if (weight_en != 0) begin
+            weight_timer_c = weight_timer_r + 1;
+            weight_counter_c = weight_counter_r;
+            weight_counter_res = 0;
+            weight_en_posedge = '1;
 
-        if (weight_counter_c == 0) begin
-            if (weight_timer_c >= ImageSize) begin
-                weight_counter_c = weight_counter_c + 1;
-                weight_counter_res = 1;
-                weight_en_posedge = '1 ^ (weight_en >> 1);
+            if (weight_counter_c == 0) begin
+                if (weight_timer_c >= ImageSize) begin
+                    weight_counter_c = weight_counter_c + 1;
+                    weight_counter_res = 1;
+                    weight_en_posedge = '1 ^ (weight_en >> 1);
+                end
+            end
+            else if (weight_counter_c < NumLayers) begin
+                if (weight_timer_c >= LNN[NumLayers - 1 - weight_counter_c]) begin
+                    weight_counter_c = weight_counter_c + 1;
+                    weight_counter_res = 1;
+                    weight_en_posedge = '1 ^ (weight_en >> 1);
+                end
             end
         end
-        else if (weight_counter_c < NumLayers) begin
-            if (weight_timer_c >= LNN[NumLayers - 1 - weight_counter_c]) begin
-                weight_counter_c = weight_counter_c + 1;
-                weight_counter_res = 1;
-                weight_en_posedge = '1 ^ (weight_en >> 1);
-            end
-        end
-        // end
 
     end
 

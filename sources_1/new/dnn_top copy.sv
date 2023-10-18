@@ -71,11 +71,13 @@ module dnn_top_diagram
     logic fl_out_ready_p;
     logic fl_out_valid_p;
     logic fl_out_start_p;
+    logic [ImageSize-1:0][BitSize-1:0] fl_out_data_p;
 
     always_ff @(posedge clk) begin
         fl_out_ready_p  <= fl_out_ready;
         fl_out_valid_p  <= fl_out_valid;
         fl_out_start_p  <= fl_out_start;
+        fl_out_data_p   <= fl_out_data;
     end
 
     genvar i;
