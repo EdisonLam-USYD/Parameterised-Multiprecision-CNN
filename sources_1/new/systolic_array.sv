@@ -57,7 +57,7 @@ module takes m + n + p cycles to complete
 // M_W_BitSize (i.e. Max Weight Bitsize) is there to save resources incase the memory isn't stored like the data
 // systolic_array #(.BitSize(BitSize), .M_W_BitSize(), .Weight_BitSize(Weight_BitSize), .NumOfInputs(NumOfInputs), .NumOfNerves(NumOfNerves)) 
 //         layer1 (.clk(), .res_n(), .in_start(), .in_valid(), .in_data(), .in_weights(), .in_partial_sum(), .out_ready(), .out_valid(), .out_done(), .out_start(), .out_data())
-module systolic_array #(BitSize = 8, M_W_BitSize = 4, Weight_BitSize = 2, NumOfInputs = 2, NumOfNerves = 2, DepthIn = 2)
+module systolic_array #(BitSize = 8, M_W_BitSize = 4, Weight_BitSize = 2, NumOfInputs = 2, NumOfNerves = 2, DepthIn = 1)
     (
         input                                   clk,
         input                                   res_n,

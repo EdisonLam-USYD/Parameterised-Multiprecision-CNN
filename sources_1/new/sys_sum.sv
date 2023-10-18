@@ -35,7 +35,6 @@ module sys_sum #(BitSize = 8, NumOfNerves = 4, DepthIn = 2) (
 
     logic [NumOfNerves-1:0][BitSize-1:0] totals_r;
     logic [NumOfNerves-1:0][BitSize-1:0] totals_c;
-    logic skip;
 
     logic [$clog2(NumOfNerves+1):0]   pos_counter_r;
     logic [$clog2(NumOfNerves+1):0]   pos_counter_c;
@@ -65,7 +64,6 @@ module sys_sum #(BitSize = 8, NumOfNerves = 4, DepthIn = 2) (
         out_valid = 0;
         out_data = '0;
         out_start = 0;
-        // skip      = 0;
 
         if (in_valid) begin
             for (int i = 0; i < NumOfNerves; i = i + 1) begin
@@ -82,8 +80,8 @@ module sys_sum #(BitSize = 8, NumOfNerves = 4, DepthIn = 2) (
                     // skip = 1;
                 end
             end
-            if (row_counter_r == DepthIn && pos_counter_c < NumOfNerves) begin
-                out_data = totals_r[NumOfNerves - pos_counter_c - 1];
+            if (row_counter_c == DepthIn && pos_counter_c < NumOfNerves) begin
+                out_data = totals_c[NumOfNerves - pos_counter_c - 1];
                 pos_counter_c = pos_counter_r + 1;
                 out_valid = 1;
                 out_start = (pos_counter_c == 1) ? 1 : 0;

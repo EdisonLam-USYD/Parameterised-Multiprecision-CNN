@@ -27,7 +27,7 @@ module sys_stacker #(BitSize = 8, NumOfNerves = 4, DepthOut = 2) (
     input res_n,
     input in_valid,
     input in_start,
-    input [NumOfNerves-1:0][BitSize-1:0] in_data,
+    input [BitSize-1:0] in_data,
 
     output logic out_start,
     output logic out_valid,
