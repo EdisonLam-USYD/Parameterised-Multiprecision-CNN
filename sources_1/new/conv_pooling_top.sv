@@ -9,7 +9,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-module conv_pooling_top #(N = 3, BitSize=32, ImageWidth = 8, Stride = 2,
+module conv_pooling_top #(N = 3, BitSize=8, ImageWidth = 32, Stride = 2,
         C1CyclesPerPixel = 2, C2CyclesPerPixel = 2,      
         C1NumberOfK = 4, C2NumberOfK = 4, C2ProcessingElements = 2,
         C1KernelBitSize = 4, C2KernelBitSize = 4,

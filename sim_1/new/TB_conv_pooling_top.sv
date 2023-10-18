@@ -1,6 +1,6 @@
 module TB_conv_pooling_top;
 
-    localparam BitSize = 4;
+    localparam BitSize = 8;
     localparam N = 3;
     localparam ImageWidth = 8;
     localparam Stride = 2;
@@ -116,10 +116,10 @@ module TB_conv_pooling_top;
     initial
     begin
         // $monitor("@ %0t:\n\t\t%b %b\n %b", $time);
-        a = 4'b0111;
-        b = 4'b0010;
-        c = 4'b1111;
-        d = 4'b1000;
+        a = 4'b01110111;
+        b = 4'b00100010;
+        c = 4'b11111111;
+        d = 4'b10001000;
         test_image =   {a, b, b, c, b, c, a, c,
                         d, d, c, a, c, a, b, c,
                         c, b, d, d, d, d, d, a,

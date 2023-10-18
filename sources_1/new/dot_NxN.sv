@@ -21,7 +21,7 @@
 
 // testing for kernel precision of 1 bit
 // dot_NxN #(.N(3), .BitSize(8), .KernelBitSize(1)) test1 (.kernel(), .in_data(), .out_data(), .sum());
-module dot_NxN #(N = 3, BitSize=2, KernelBitSize = 4)
+module dot_NxN #(N = 3, BitSize=8, KernelBitSize = 4)
     (
     input [KernelBitSize*(N*N)-1:0] kernel,
     input signed [BitSize*(N*N)-1:0] in_data,
@@ -43,39 +43,59 @@ module dot_NxN #(N = 3, BitSize=2, KernelBitSize = 4)
     generate 
         if (KernelBitSize == 1) begin
             for (i = 0; i < N*N; i= i + 1) begin : _1BitDotProduct
-                multiply_1Bit #(.BitSize(BitSize)) multi (
-                                            .in_data(i_data_layers[i]),
-                                            .i_prod(kernel_layers[i]),
-                                            .out_data(o_data_layers[i])
-                                            );
+                mul1bit mul1 (
+                  .A(kernel_layers[i]),  // input wire [0 : 0] A
+                  .B(i_data_layers[i]),  // input wire [7 : 0] B
+                  .P(o_data_layers[i])  // output wire [8 : 0] P
+                );
+                // multiply_1Bit #(.BitSize(BitSize)) multi (
+                //                             .in_data(i_data_layers[i]),
+                //                             .i_prod(kernel_layers[i]),
+                //                             .out_data(o_data_layers[i])
+                //                             );
             end 
         end
         else if (KernelBitSize == 2) begin
             // not implemented yet
             for (i = 0; i < N*N; i= i + 1) begin : _2BitDotProduct
-                multiply_2Bit #(.BitSize(BitSize)) multi (
-                                            .in_data(i_data_layers[i]),
-                                            .i_prod(kernel_layers[i]),
-                                            .out_data(o_data_layers[i])
-                                            );
+                mul2bit mul2 (
+                  .A(kernel_layers[i]),  // input wire [1 : 0] A
+                  .B(i_data_layers[i]),  // input wire [7 : 0] B
+                  .P(o_data_layers[i])  // output wire [9 : 0] P
+                );
+                // multiply_2Bit #(.BitSize(BitSize)) multi (
+                //                             .in_data(i_data_layers[i]),
+                //                             .i_prod(kernel_layers[i]),
+                //                             .out_data(o_data_layers[i])
+                //                             );
             end 
         end
         else if (KernelBitSize == 4) begin
             for (i = 0; i < N*N; i= i + 1) begin : _4BitDotProduct
-                multiply_4Bit #(.BitSize(BitSize), .FixedPointPos()) multi (
-                                            .in_data(i_data_layers[i]),
-                                            .i_prod(kernel_layers[i]),
-                                            .out_data(o_data_layers[i])
-                                            );
+                mul4bit mul4 (
+                  .A(kernel_layers[i]),  // input wire [3 : 0] A
+                  .B(i_data_layers[i]),  // input wire [7 : 0] B
+                  .P(o_data_layers[i])  // output wire [11 : 0] P
+                );
+                // multiply_4Bit #(.BitSize(BitSize), .FixedPointPos()) multi (
+                //                             .in_data(i_data_layers[i]),
+                //                             .i_prod(kernel_layers[i]),
+                //                             .out_data(o_data_layers[i])
+                //                             );
             end 
         end
         else if (KernelBitSize == 8) begin
-            for (i = 0; i < N*N; i= i + 1) begin : _2BitDotProduct
-                multiply_8Bit #(.BitSize(BitSize), .FixedPointPos()) multi (
-                                            .in_data(i_data_layers[i]),
-                                            .i_prod(kernel_layers[i]),
-                                            .out_data(o_data_layers[i])
-                                            );
+            for (i = 0; i < N*N; i= i + 1) begin : _8BitDotProduct
+                mul8bit mul8 (
+                  .A(kernel_layers[i]),  // input wire [7 : 0] A
+                  .B(i_data_layers[i]),  // input wire [7 : 0] B
+                  .P(o_data_layers[i])  // output wire [15 : 0] P
+                );
+                // multiply_8Bit #(.BitSize(BitSize), .FixedPointPos()) multi (
+                //                             .in_data(i_data_layers[i]),
+                //                             .i_prod(kernel_layers[i]),
+                //                             .out_data(o_data_layers[i])
+                //                             );
             end 
         end
         
