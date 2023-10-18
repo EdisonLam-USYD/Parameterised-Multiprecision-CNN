@@ -35,6 +35,7 @@ module sys_sum #(BitSize = 8, NumOfNerves = 4, DepthIn = 2) (
 
     logic [NumOfNerves-1:0][BitSize-1:0] totals_r;
     logic [NumOfNerves-1:0][BitSize-1:0] totals_c;
+    logic skip;
 
     logic [$clog2(NumOfNerves+1):0]   pos_counter_r;
     logic [$clog2(NumOfNerves+1):0]   pos_counter_c;
@@ -49,9 +50,9 @@ module sys_sum #(BitSize = 8, NumOfNerves = 4, DepthIn = 2) (
 
         end 
         else begin
-            pos_counter_r   <= pos_counter_c;
+            pos_counter_r   <= (pos_counter_c < NumOfNerves) ? pos_counter_c : '0;
             row_counter_r   <= row_counter_c;
-            totals_r        <= (pos_counter_c != NumOfNerves) ? totals_c : '0;
+            totals_r        <= totals_c;
         end
     end
 
@@ -64,24 +65,28 @@ module sys_sum #(BitSize = 8, NumOfNerves = 4, DepthIn = 2) (
         out_valid = 0;
         out_data = '0;
         out_start = 0;
+        // skip      = 0;
 
         if (in_valid) begin
             for (int i = 0; i < NumOfNerves; i = i + 1) begin
-                totals_c[i] = totals_c[i] + in_data[i]; // by doing this, overflow of data should not occur (versus using totals_c + in_data)
+                // totals_c[i] = (row_counter_r-1 == 0) ? totals_c[i] + in_data[i] : in_data[i]; // by doing this, overflow of data should not occur (versus using totals_c + in_data)
+                totals_c[i] = totals_c[i] + in_data[i];
             end
             
             if (in_start) begin
                 row_counter_c = row_counter_c + 1;
-                if (row_counter_c > DepthIn + 1) begin
-                    row_counter_c = 0;
+                if (row_counter_c > DepthIn) begin
+                    row_counter_c = 1;
                     pos_counter_c = 0;
+                    totals_c = in_data;
+                    // skip = 1;
                 end
             end
-            if (row_counter_r == DepthIn && pos_counter_r < NumOfNerves) begin
+            if (row_counter_r == DepthIn && pos_counter_c < NumOfNerves) begin
                 out_data = totals_r[NumOfNerves - pos_counter_c - 1];
-                pos_counter_c = pos_counter_c + 1;
+                pos_counter_c = pos_counter_r + 1;
                 out_valid = 1;
-                out_start = (pos_counter_r == 0) ? 1 : 0;
+                out_start = (pos_counter_c == 1) ? 1 : 0;
             end
         end
 
