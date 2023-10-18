@@ -57,27 +57,27 @@ module takes m + n + p cycles to complete
 // M_W_BitSize (i.e. Max Weight Bitsize) is there to save resources incase the memory isn't stored like the data
 // systolic_array #(.BitSize(BitSize), .M_W_BitSize(), .Weight_BitSize(Weight_BitSize), .NumOfInputs(NumOfInputs), .NumOfNerves(NumOfNerves)) 
 //         layer1 (.clk(), .res_n(), .in_start(), .in_valid(), .in_data(), .in_weights(), .in_partial_sum(), .out_ready(), .out_valid(), .out_done(), .out_start(), .out_data())
-module systolic_array #(BitSize = 8, M_W_BitSize = 4, Weight_BitSize = 2, NumOfInputs = 2, NumOfNerves = 2)
+module systolic_array #(BitSize = 8, M_W_BitSize = 4, Weight_BitSize = 2, NumOfInputs = 2, NumOfNerves = 2, DepthIn = 2)
     (
         input                                   clk,
         input                                   res_n,
         // input                                   in_w_en,
+        input                                   en_l_b,
         input                                   in_start,           // signals when out_done and out_valid should stop, hold start for 1 cycle per height (m)
         input                                   in_valid,           // should always be on unless blockage
         input [NumOfInputs*BitSize-1:0]         in_data,            // (assuming m = 1)
         input [NumOfNerves*M_W_BitSize-1:0]     in_weights,         // actual value can be stored based on Weight_BitSize
         input [NumOfNerves*BitSize-1:0]         in_partial_sum,     // some can have biases
 
-        output logic                            out_ready,
-        output logic                            out_valid,
-        output logic                            out_start,
-        output logic                            out_done,
-        output logic [NumOfNerves*BitSize-1:0]  out_data
+        output logic                                    out_valid,
+        output logic                                    out_start,
+        output logic                                    out_done,
+        output logic [NumOfNerves-1:0][BitSize-1:0]     out_data
     );
 
     // takes BlockSize cycles to load in all b values
-    logic en_l_b;
-    logic [$clog2(NumOfInputs)+1:0] counter_w;                          // counts the loading of the weights for each of the nerves (NumOfInputs times)
+    // logic en_l_b;
+    // logic [$clog2(NumOfInputs)+1:0] counter_w;                          // counts the loading of the weights for each of the nerves (NumOfInputs times)
 
     logic [NumOfInputs-1:0][BitSize-1:0]        t_in_data;    // transformed version of in_data for easier input
     logic [NumOfNerves-1:0][M_W_BitSize-1:0]    in_w;
@@ -85,35 +85,39 @@ module systolic_array #(BitSize = 8, M_W_BitSize = 4, Weight_BitSize = 2, NumOfI
     logic [NumOfNerves-1:0][BitSize-1:0]        out_array;
     logic [NumOfNerves+NumOfInputs-1:0]         done_check;
     logic done_latch;
+    logic [NumOfInputs-1:0] inc_buffer;
 
     // assign t_in_data = in_data;  // this bugs it out for some reason, making the first column in_a == second column in_a
     assign out_data = out_array;
     assign in_w = in_weights;
     assign in_pa = in_partial_sum;
-    assign out_start = done_check[NumOfInputs-1] && in_valid;
-    assign out_valid = (done_check[NumOfInputs+NumOfNerves-2:NumOfInputs-1] != 0) && in_valid;
+    assign out_start = done_check[NumOfInputs] && in_valid;
+    assign out_valid = (done_check[NumOfInputs+NumOfNerves-1:NumOfInputs] != 0) && in_valid;
 
     always_ff @(posedge clk) begin
         if (!res_n) begin
-            counter_w       <= 'b0;
+            // counter_w       <= 'b0;
             done_check      <= 'b0;
             done_latch      <= 'b0;
+            inc_buffer <= '0;
+            // out_valid       <=  0;
         end
         else begin
-            if ((counter_w < NumOfInputs + 1) /*&& in_w_en*/) begin
-                counter_w   <= counter_w + 1;
-            end
+            // if ((counter_w < NumOfInputs + 1) /*&& in_w_en*/) begin
+            //     counter_w   <= counter_w + 1;
+            // end
+            inc_buffer <= {inc_buffer, in_start};
             if (in_valid) done_check      <= {done_check, in_start && in_valid};
             // done_check[0]   <= in_start && in_valid;
             done_latch      <= (!in_start) ? ((out_valid) ? 1 : done_latch) : 0;
+            // out_valid       <= (done_check[NumOfInputs+NumOfNerves-2:NumOfInputs-1] != 0) && in_valid;
         end
     end 
 
     // condition for when there is output: counter_in_r > NumOfInputs + NumOfNerves
     always_comb begin
         t_in_data = in_data;
-        en_l_b = (counter_w == NumOfInputs) ? 1'b1 : 1'b0;
-        out_ready = (counter_w + 1 > NumOfInputs) ? 1'b1 : 1'b0;        // out_ready is on when all weights are loaded in
+        // en_l_b = (counter_w == NumOfInputs) ? 1'b1 : 1'b0;
         out_done  = (done_latch && in_valid && !out_valid) ? 1 : 0;
         // out_data = out_array;
     end
@@ -123,28 +127,33 @@ module systolic_array #(BitSize = 8, M_W_BitSize = 4, Weight_BitSize = 2, NumOfI
     generate;
         for (i = 0; i < NumOfInputs; i = i + 1) begin : si            // row      -> corresponds to the number of inputs
             for (j = 0; j < NumOfNerves; j = j + 1) begin :sj         // column   -> corresponds to the number of nerves in layer
-                logic [BitSize-1:0]          out_a;
-                logic [M_W_BitSize-1:0]          out_b;
-                logic [BitSize-1:0]          out_ps;
+                logic [BitSize-1:0]         out_a;
+                logic [M_W_BitSize-1:0]     out_b;
+                logic [BitSize-1:0]         out_ps;
+                logic                       out_inc;
                 if (i == 0 && j == 0) begin
-                    systolic_pe #(.BitSize(BitSize), .Weight_BitSize(Weight_BitSize), .M_W_BitSize(M_W_BitSize)) s_block 
+                    systolic_pe #(.BitSize(BitSize), .Weight_BitSize(Weight_BitSize), .M_W_BitSize(M_W_BitSize), .Depth(DepthIn), .Offset(0)) s_block 
                         (.clk(clk), .res_n(res_n), .in_valid(in_valid), .en_l_b(en_l_b), .in_a(t_in_data[NumOfInputs-1]), .in_b(in_w[NumOfNerves-1-j]), //.in_w_en(in_w_en),
-                        .in_partial_sum(in_pa[NumOfNerves-1-j]), .out_a(si[i].sj[j].out_a), .out_b(si[i].sj[j].out_b), .out_partial_sum(si[i].sj[j].out_ps));
+                        .in_partial_sum(in_pa[NumOfNerves-1-j]), .out_a(si[i].sj[j].out_a), .out_b(si[i].sj[j].out_b), .out_partial_sum(si[i].sj[j].out_ps),
+                        .in_increment(inc_buffer[0]), .out_increment(out_inc));
                 end
                 else if (i == 0) begin
-                    systolic_pe #(.BitSize(BitSize), .Weight_BitSize(Weight_BitSize), .M_W_BitSize(M_W_BitSize)) s_block 
+                    systolic_pe #(.BitSize(BitSize), .Weight_BitSize(Weight_BitSize), .M_W_BitSize(M_W_BitSize), .Depth(DepthIn), .Offset(j)) s_block 
                         (.clk(clk), .res_n(res_n), .in_valid(in_valid), .en_l_b(en_l_b), .in_a(si[i].sj[j-1].out_a), .in_b(in_w[NumOfNerves-1-j]), //.in_w_en(in_w_en),
-                        .in_partial_sum(in_pa[NumOfNerves-1-j]), .out_a(si[i].sj[j].out_a), .out_b(si[i].sj[j].out_b), .out_partial_sum(si[i].sj[j].out_ps));
+                        .in_partial_sum(in_pa[NumOfNerves-1-j]), .out_a(si[i].sj[j].out_a), .out_b(si[i].sj[j].out_b), .out_partial_sum(si[i].sj[j].out_ps),
+                        .in_increment(si[i].sj[j-1].out_inc), .out_increment(out_inc));
                 end
                 else if (j == 0) begin
-                    systolic_pe #(.BitSize(BitSize), .Weight_BitSize(Weight_BitSize), .M_W_BitSize(M_W_BitSize)) s_block 
+                    systolic_pe #(.BitSize(BitSize), .Weight_BitSize(Weight_BitSize), .M_W_BitSize(M_W_BitSize), .Depth(DepthIn), .Offset(i)) s_block 
                         (.clk(clk), .res_n(res_n), .in_valid(in_valid), .en_l_b(en_l_b), .in_a(t_in_data[NumOfInputs-1-i]), .in_b(si[i-1].sj[j].out_b), //.in_w_en(in_w_en),
-                        .in_partial_sum(si[i-1].sj[j].out_ps), .out_a(si[i].sj[j].out_a), .out_b(si[i].sj[j].out_b), .out_partial_sum(si[i].sj[j].out_ps));
+                        .in_partial_sum(si[i-1].sj[j].out_ps), .out_a(si[i].sj[j].out_a), .out_b(si[i].sj[j].out_b), .out_partial_sum(si[i].sj[j].out_ps),
+                        .in_increment(inc_buffer[i]), .out_increment(out_inc));
                 end
                 else begin
-                    systolic_pe #(.BitSize(BitSize), .Weight_BitSize(Weight_BitSize), .M_W_BitSize(M_W_BitSize)) s_block 
+                    systolic_pe #(.BitSize(BitSize), .Weight_BitSize(Weight_BitSize), .M_W_BitSize(M_W_BitSize), .Depth(DepthIn), .Offset(i+j)) s_block 
                     (.clk(clk), .res_n(res_n), .in_valid(in_valid), .en_l_b(en_l_b), .in_a(si[i].sj[j-1].out_a), .in_b(si[i-1].sj[j].out_b), //.in_w_en(in_w_en),
-                    .in_partial_sum(si[i-1].sj[j].out_ps), .out_a(si[i].sj[j].out_a), .out_b(si[i].sj[j].out_b), .out_partial_sum(si[i].sj[j].out_ps));
+                    .in_partial_sum(si[i-1].sj[j].out_ps), .out_a(si[i].sj[j].out_a), .out_b(si[i].sj[j].out_b), .out_partial_sum(si[i].sj[j].out_ps),
+                    .in_increment(si[i].sj[j-1].out_inc), .out_increment(out_inc));
                 end
             end
         end
