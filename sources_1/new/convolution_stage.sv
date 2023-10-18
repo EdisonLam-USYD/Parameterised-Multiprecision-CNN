@@ -3,9 +3,9 @@
 // note: N is the size of the kernel - might make it during run-time rather than compilation
 // Some features to add after: - stride steps, increased number of data loaded in at once (parameterised)
 // convolution_stage #(.NumberOfK(), .N(), .BitSize(), .KernelBitSize(), .ImageWidth()) conv_s (.clk(), .res_n(), .in_valid(), .kernel(), .in_data(), .out_ready(), .out_valid(), .out_data());
-module convolution_stage #(NumberOfK = 4, N = 3, BitSize=32, KernelBitSize = 4, ImageWidth = 4, CyclesPerPixel = 2, 
-							ProcessingElements = (NumberOfK+CyclesPerPixel-1)/CyclesPerPixel,
-							[KernelBitSize*(N*N)-1:0] kernel [NumberOfK-1:0] = {'0,'0,'0,'0})
+module convolution_stage #(NumberOfK = 8, N = 3, BitSize=8, KernelBitSize = 32, ImageWidth = 16, 
+							ProcessingElements = 4, CyclesPerPixel = NumberOfK/ProcessingElements,
+							[KernelBitSize*(N*N)-1:0] kernel [NumberOfK-1:0] = {'0,'0,'0,'0, '0,'0,'0,'0})
 		(
     		input 							clk,
             input                           res_n,

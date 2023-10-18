@@ -19,7 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module conv_pooling_layer #(N = 3, BitSize=8, ImageWidth = 16, NumberOfK = 8, KernelBitSize = 1, ProcessingElements = 2, 
+module conv_pooling_layer #(N = 3, BitSize=8, ImageWidth = 16, NumberOfK = 8, KernelBitSize = 8, ProcessingElements = 1, 
                             CyclesPerPixel = NumberOfK/ProcessingElements, Stride = 2,
                             [KernelBitSize*(N*N)-1:0] kernel [NumberOfK-1:0] = {'0,'0,'0,'0,'0,'0,'0,'0})
 		(

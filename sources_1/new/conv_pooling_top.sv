@@ -9,12 +9,12 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-module conv_pooling_top #(N = 3, BitSize=8, ImageWidth = 32, Stride = 2,
-        C1CyclesPerPixel = 2, C2CyclesPerPixel = 2,      
-        C1NumberOfK = 4, C2NumberOfK = 4, C2ProcessingElements = 2,
-        C1KernelBitSize = 4, C2KernelBitSize = 4,
-        [C1KernelBitSize*(N*N)-1:0] C1kernel [C1NumberOfK-1:0] = {'0,'0,'0,'0},
-        [C2KernelBitSize*(N*N)-1:0] C2kernel [C2NumberOfK-1:0] = {'0,'0,'0,'0})
+module conv_pooling_top #(N = 3, BitSize=8, ImageWidth = 16, Stride = 2,
+        C1CyclesPerPixel = 4, C2CyclesPerPixel = 1,      
+        C1NumberOfK = 8, C2NumberOfK = 8, C2ProcessingElements = 2,
+        C1KernelBitSize = 8, C2KernelBitSize = 2,
+        [C1KernelBitSize*(N*N)-1:0] C1kernel [C1NumberOfK-1:0] = {'0,'0,'0,'0,'0,'0,'0,'0},
+        [C2KernelBitSize*(N*N)-1:0] C2kernel [C2NumberOfK-1:0] = {'0,'0,'0,'0,'0,'0,'0,'0})
         // [C3KernelBitSize*(N*N)-1:0] C3kernel [C3NumberOfK-1:0] = {'0,'0,'0,'0})
 	(
     		input 						                        clk,

@@ -98,6 +98,24 @@ module dot_NxN #(N = 3, BitSize=8, KernelBitSize = 4)
                 //                             );
             end 
         end
+        else if (KernelBitSize == 16) begin
+            for (i = 0; i < N*N; i= i + 1) begin : _16BitDotProduct
+                mul16bit mul16 (
+                  .A(kernel_layers[i]),  // input wire [7 : 0] A
+                  .B(i_data_layers[i]),  // input wire [7 : 0] B
+                  .P(o_data_layers[i])  // output wire [15 : 0] P
+                );
+            end 
+        end
+        else if (KernelBitSize == 32) begin
+            for (i = 0; i < N*N; i= i + 1) begin : _32BitDotProduct
+                mul32bit mul32 (
+                  .A(kernel_layers[i]),  // input wire [7 : 0] A
+                  .B(i_data_layers[i]),  // input wire [7 : 0] B
+                  .P(o_data_layers[i])  // output wire [15 : 0] P
+                );
+            end 
+        end
         
     endgenerate 
     /* verilator lint_off WIDTH */
