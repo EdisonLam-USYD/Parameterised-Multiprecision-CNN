@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
-// Engineer: 
+// Engineer: Edison Lam
 // 
 // Create Date: 25.04.2023 21:05:38
 // Design Name: 
@@ -9,17 +9,11 @@
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
+// Description: Test bench for the 2D systolic array multiplier (depreciated)
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-
+// Depreciated version, for implementation with PE reuse, use TB_fcl
 module TB_nerveLayers;
 
     localparam BitSize = 8;
@@ -42,7 +36,7 @@ module TB_nerveLayers;
     logic                            out_done;
     logic [NumOfNerves-1:0][BitSize-1:0]              out_data;
 
-    systolic_array #(.BitSize(BitSize), .Weight_BitSize(Weight_BitSize), .M_W_BitSize(M_W_BitSize), .NumOfInputs(NumOfInputs), .NumOfNerves(NumOfNerves)) 
+    systolic_array #(.BitSize(BitSize), .Weight_BitSize(Weight_BitSize), .M_W_BitSize(M_W_BitSize), .NumOfInputs(NumOfInputs), .NumOfNerves(NumOfNerves), .DepthIn(2)) 
         layer1 (.clk(clk), .res_n(res_n), .in_valid(in_valid), .in_start(in_start), .in_data(in_data), .in_weights(in_weights), .in_partial_sum(in_partial_sum), 
         .en_l_b(en_l_b), .out_valid(out_valid), .out_done(out_done), .out_data(out_data));
 
