@@ -56,6 +56,7 @@ module top #(
     logic [C2NumberOfK-1:0]                     dnn_in_valid;
     logic [C2ProcessingElements-1:0][BitSize-1:0] dnn_in_data;
     logic                                       dnn_in_set_done;
+    logic in_fl_res;
 
     dnn_top #(
         .BitSize(BitSize), .M_W_BitSize(M_W_BitSize), .NumIn(C2ProcessingElements), .MaxNumNerves(MaxNumNerves), .NumOfImages(C2NumberOfK), // only does C2NumberOfK before requiring a reset
@@ -67,7 +68,6 @@ module top #(
 
     logic [$clog2(C2NumberOfK + MaxNumNerves)+1:0] in_fl_counter_r;
     logic [$clog2(C2NumberOfK + MaxNumNerves)+1:0] in_fl_counter_c;
-    logic in_fl_res;
 
 
     always_ff @(posedge clk) begin
