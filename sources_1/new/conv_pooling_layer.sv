@@ -54,6 +54,9 @@ module conv_pooling_layer #(N = 3, BitSize=8, ImageWidth = 16, NumberOfK = 8,
     logic                               conv_valid_r;
     logic [NumberOfK-1:0][BitSize-1:0] 	conv_out_r;
 
+    logic [NumberOfK-1:0][BitSize-1:0]   pooling_temp;
+
+
     assign pooling_done = (pooling_done_arr=={NumberOfK{1'b1}})?1:0;
 
 
@@ -102,10 +105,19 @@ module conv_pooling_layer #(N = 3, BitSize=8, ImageWidth = 16, NumberOfK = 8,
                 .out_ready(),
                 .out_done(pooling_done_arr[i]),
                 .out_valid(out_valid[i]),
-                .out_data(out_data[i%ProcessingElements])
+                .out_data(pooling_temp[i])
             );
         end
     endgenerate
+
+    integer j;
+    always_comb
+    begin
+        out_data = '0;
+        for(j = 0; (j < NumberOfK); j = j + 1) begin
+            out_data[j%ProcessingElements] = out_data[j%ProcessingElements]|out_valid[j]*pooling_temp[j];
+        end
+    end
 
 
     always_ff@(posedge clk) begin
