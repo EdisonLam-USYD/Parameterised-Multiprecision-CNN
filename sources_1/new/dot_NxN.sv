@@ -21,7 +21,7 @@
 
 // testing for kernel precision of 1 bit
 // dot_NxN #(.N(3), .BitSize(8), .KernelBitSize(1)) test1 (.kernel(), .in_data(), .out_data(), .sum());
-module dot_NxN #(N = 3, BitSize=8, KernelBitSize = 4)
+module dot_NxN #(N = 3, BitSize=8, KernelBitSize = 16)
     (
     input [KernelBitSize*(N*N)-1:0] kernel,
     input signed [BitSize*(N*N)-1:0] in_data,
@@ -29,11 +29,10 @@ module dot_NxN #(N = 3, BitSize=8, KernelBitSize = 4)
     output logic [BitSize-1:0] sum
     );
     
-//    logic [N*N-1:0] in_shell;   // ? x ? matrix from in_data (i.e. image)
-//    logic [N*N-1:0][BitSize-1:0] pooling;    // 
     logic [N*N-1:0][KernelBitSize-1:0] kernel_layers;
     logic [N*N-1:0][BitSize-1:0] i_data_layers;
     logic [N*N-1:0][BitSize-1:0] o_data_layers;
+
     
     assign kernel_layers = kernel;
     assign i_data_layers = in_data;
@@ -46,28 +45,18 @@ module dot_NxN #(N = 3, BitSize=8, KernelBitSize = 4)
                 mul1bit mul1 (
                   .A(kernel_layers[i]),  // input wire [0 : 0] A
                   .B(i_data_layers[i]),  // input wire [7 : 0] B
-                  .P(o_data_layers[i])  // output wire [8 : 0] P
+                  .P(o_data_layers[i])  // output wire [8 : 1] P
                 );
-                // multiply_1Bit #(.BitSize(BitSize)) multi (
-                //                             .in_data(i_data_layers[i]),
-                //                             .i_prod(kernel_layers[i]),
-                //                             .out_data(o_data_layers[i])
-                //                             );
+
             end 
         end
         else if (KernelBitSize == 2) begin
-            // not implemented yet
             for (i = 0; i < N*N; i= i + 1) begin : _2BitDotProduct
                 mul2bit mul2 (
                   .A(kernel_layers[i]),  // input wire [1 : 0] A
                   .B(i_data_layers[i]),  // input wire [7 : 0] B
-                  .P(o_data_layers[i])  // output wire [9 : 0] P
+                  .P(o_data_layers[i])  // output wire [9 : 2] P
                 );
-                // multiply_2Bit #(.BitSize(BitSize)) multi (
-                //                             .in_data(i_data_layers[i]),
-                //                             .i_prod(kernel_layers[i]),
-                //                             .out_data(o_data_layers[i])
-                //                             );
             end 
         end
         else if (KernelBitSize == 4) begin
@@ -75,13 +64,8 @@ module dot_NxN #(N = 3, BitSize=8, KernelBitSize = 4)
                 mul4bit mul4 (
                   .A(kernel_layers[i]),  // input wire [3 : 0] A
                   .B(i_data_layers[i]),  // input wire [7 : 0] B
-                  .P(o_data_layers[i])  // output wire [11 : 0] P
+                  .P(o_data_layers[i])  // output wire [11 : 4] P
                 );
-                // multiply_4Bit #(.BitSize(BitSize), .FixedPointPos()) multi (
-                //                             .in_data(i_data_layers[i]),
-                //                             .i_prod(kernel_layers[i]),
-                //                             .out_data(o_data_layers[i])
-                //                             );
             end 
         end
         else if (KernelBitSize == 8) begin
@@ -89,13 +73,8 @@ module dot_NxN #(N = 3, BitSize=8, KernelBitSize = 4)
                 mul8bit mul8 (
                   .A(kernel_layers[i]),  // input wire [7 : 0] A
                   .B(i_data_layers[i]),  // input wire [7 : 0] B
-                  .P(o_data_layers[i])  // output wire [15 : 0] P
+                  .P(o_data_layers[i])  // output wire [15 : 8] P
                 );
-                // multiply_8Bit #(.BitSize(BitSize), .FixedPointPos()) multi (
-                //                             .in_data(i_data_layers[i]),
-                //                             .i_prod(kernel_layers[i]),
-                //                             .out_data(o_data_layers[i])
-                //                             );
             end 
         end
         else if (KernelBitSize == 16) begin
@@ -103,7 +82,7 @@ module dot_NxN #(N = 3, BitSize=8, KernelBitSize = 4)
                 mul16bit mul16 (
                   .A(kernel_layers[i]),  // input wire [7 : 0] A
                   .B(i_data_layers[i]),  // input wire [7 : 0] B
-                  .P(o_data_layers[i])  // output wire [15 : 0] P
+                  .P(o_data_layers[i])  // output wire [23 : 16] P
                 );
             end 
         end
@@ -112,7 +91,7 @@ module dot_NxN #(N = 3, BitSize=8, KernelBitSize = 4)
                 mul32bit mul32 (
                   .A(kernel_layers[i]),  // input wire [7 : 0] A
                   .B(i_data_layers[i]),  // input wire [7 : 0] B
-                  .P(o_data_layers[i])  // output wire [15 : 0] P
+                  .P(o_data_layers[i])  // output wire [39 : 32] P
                 );
             end 
         end
