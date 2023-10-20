@@ -9,12 +9,12 @@
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
-// Description: Test bench for the 2D systolic array multiplier (depreciated)
+// Description: Test bench for the 2D systolic array multiplier
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-// Depreciated version, for implementation with PE reuse, use TB_fcl
-module TB_nerveLayers;
+
+module TB_fcl;
 
     localparam BitSize = 8;
     localparam M_W_BitSize = 8;
@@ -36,7 +36,7 @@ module TB_nerveLayers;
     logic                            out_done;
     logic [NumOfNerves-1:0][BitSize-1:0]              out_data;
 
-    systolic_array #(.BitSize(BitSize), .Weight_BitSize(Weight_BitSize), .M_W_BitSize(M_W_BitSize), .NumOfInputs(NumOfInputs), .NumOfNerves(NumOfNerves), .DepthIn(2)) 
+    fc_layer #(.BitSize(BitSize), .Weight_BitSize(Weight_BitSize), .M_W_BitSize(M_W_BitSize), .NumOfInputs(NumOfInputs), .NumOfNerves(NumOfNerves), .DepthIn(2), .DepthOut(1)) 
         layer1 (.clk(clk), .res_n(res_n), .in_valid(in_valid), .in_start(in_start), .in_data(in_data), .in_weights(in_weights), .in_partial_sum(in_partial_sum), 
         .en_l_b(en_l_b), .out_valid(out_valid), .out_done(out_done), .out_data(out_data));
 
@@ -97,14 +97,32 @@ module TB_nerveLayers;
             #10
             clk = 0;
         end
-        for(int i = 1; i < 2; i = i + 1) begin
+        // for(int i = 1; i < 2; i = i + 1) begin
+        //     #10
+        //     clk = 1;
+        //     en_l_b = 1;
+        //     #10
+        //     clk = 0;
+        // end
+        en_l_b = 0;
+        // TODO: input data
+        for(int i = 0; i < NumOfInputs+(Height-1); i = i + 1) begin
             #10
             clk = 1;
-            en_l_b = 1;
+            in_valid = 1;
+            in_data = a_matrix[3-i];
+            in_start = (i % 2 == 0) ? 1 : 0;
             #10
             clk = 0;
         end
-        en_l_b = 0;
+        for(int i = 0; i < NumOfNerves*2; i = i + 1) begin
+            #10
+            clk = 1;
+            in_start = 0;
+            in_data = 'b0;
+            #10
+            clk = 0;
+        end
         // TODO: input data
         for(int i = 0; i < NumOfInputs+(Height-1); i = i + 1) begin
             #10

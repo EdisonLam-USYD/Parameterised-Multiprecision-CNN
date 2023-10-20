@@ -21,24 +21,27 @@
 
 // systolic processing element, used for matrix multiplication within layers and hidden layers to avoid fan-out
 // systolic_pe #(.BitSize(), .Weight_BitSize(), .M_W_BitSize()) s_block (.clk(clk), .res_n(), .en_l_b(), .in_a(), .in_b(), .in_partial_sum(), .out_a(), .out_b(), .out_partial_sum());
-module systolic_pe #(BitSize = 8, M_W_BitSize = 8, Weight_BitSize = 8)
+module systolic_pe #(BitSize = 8, M_W_BitSize = 8, Weight_BitSize = 8, Depth = 1, Offset = 0)
     (
         input                               clk,
         input                               res_n,
         input                               in_valid,
-        input                               en_l_b,              // loads weight on high and passes on the current weight
+        input                               en_l_b,             // loads weight on high and passes on the current weight
+        input                               in_increment,       // signals when to increment the depth
         input [BitSize-1:0]                 in_a,
         input [M_W_BitSize-1:0]             in_b,               // actual value can be stored based on Weight_BitSize
         // input                               in_w_en,
         input [BitSize-1:0]                 in_partial_sum,
+        output logic                        out_increment,
         output logic [BitSize-1:0]          out_a,
         output logic [M_W_BitSize-1:0]      out_b,
         output logic [BitSize-1:0]          out_partial_sum
     );
 
-    logic   [Weight_BitSize-1:0]    stored_b;
+    logic   [Depth-1:0][Weight_BitSize-1:0]    stored_b;
     logic   [Weight_BitSize-1:0]    stored_b_c;
-    wire    [BitSize-1:0]           out_value;
+    logic   [$clog2(Depth+Offset):0]       depth_count_b;
+    // logic    [BitSize-1:0]          partialsum_p;
     wire    [BitSize-1:0]           multi_val;
 
     always_ff @(posedge clk) begin
@@ -46,12 +49,19 @@ module systolic_pe #(BitSize = 8, M_W_BitSize = 8, Weight_BitSize = 8)
             stored_b                <= 'b0;
             out_partial_sum         <= 'b0;
             out_a                   <= 'b0;
+            depth_count_b           <= Offset;
+            out_increment           <= 0;
+            // partialsum_p            <= '0;
         end
         else begin
-            stored_b <= stored_b_c;
+            if (en_l_b) stored_b <= {stored_b, stored_b_c};
             if (in_valid) begin
-                out_partial_sum     <= out_value;
+                depth_count_b       <= (depth_count_b + in_increment) % Depth;
+                // out_partial_sum     <= out_value;
+                // partialsum_p        <= in_partial_sum;
+                out_partial_sum     <= in_partial_sum + multi_val;
                 out_a               <= in_a;
+                out_increment       <= in_increment;
             end
             // out_b                   <= in_b;
         end
@@ -61,35 +71,35 @@ module systolic_pe #(BitSize = 8, M_W_BitSize = 8, Weight_BitSize = 8)
         // $display("in_a:%b, in_b:%b, stored_b:%b, in_ps:%b, out: %b", in_a, in_b, stored_b, in_partial_sum, out_partial_sum);
     end
 
-    assign out_value = in_partial_sum + multi_val;
-    assign stored_b_c = (en_l_b) ? out_b[Weight_BitSize-1:0] : stored_b;
+    // assign out_partial_sum = in_partial_sum + multi_val;
+    assign stored_b_c = in_b[Weight_BitSize-1:0];
 
     generate 
         if (Weight_BitSize == 1) begin
             multiply_1Bit #(.BitSize(BitSize)) multi (
-                                        .in_data(in_a),
-                                        .i_prod(stored_b_c),
+                                        .in_data(out_a),
+                                        .i_prod(stored_b[depth_count_b]),
                                         .out_data(multi_val)
                                         );
         end
         else if (Weight_BitSize == 2) begin
             multiply_2Bit #(.BitSize(BitSize)) multi (
-                                        .in_data(in_a),
-                                        .i_prod(stored_b_c),
+                                        .in_data(out_a),
+                                        .i_prod(stored_b[depth_count_b]),
                                         .out_data(multi_val)
                                         );
         end
         else if (Weight_BitSize == 4) begin
             multiply_4Bit #(.BitSize(BitSize), .FixedPointPos()) multi (
-                                        .in_data(in_a),
-                                        .i_prod(stored_b_c),
+                                        .in_data(out_a),
+                                        .i_prod(stored_b[depth_count_b]),
                                         .out_data(multi_val)
                                         );
         end
         else if (Weight_BitSize == 8) begin
             multiply_8Bit #(.BitSize(BitSize), .FixedPointPos()) multi (
-                                        .in_data(in_a),
-                                        .i_prod(stored_b_c),
+                                        .in_data(out_a),
+                                        .i_prod(stored_b[depth_count_b]),
                                         .out_data(multi_val)
                                         );
         end

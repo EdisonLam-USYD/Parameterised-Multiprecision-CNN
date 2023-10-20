@@ -1,11 +1,11 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
-// Engineer: Edison Lam
+// Engineer: 
 // 
-// Create Date: 30.09.2023
+// Create Date: 05.08.2023
 // Design Name: 
-// Module Name: dnn_top
+// Module Name: convolution_buffer
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -29,11 +29,10 @@
 //     .clk(), .res_n(), .in_valid(), .in_data(), .in_weights(), 
 //     .out_ready(), .out_data(), .out_valid(), .out_done()
 // )
-module dnn_top 
+module dnn_top_diagram 
 #(
     BitSize = 8, M_W_BitSize = 4, NumIn = 4, NumLayers = 2, MaxNumNerves = 5, NumOfImages = 4,
-    CyclesPerPixel = 4, ImageSize = 4, integer LWB [NumLayers-1:0] = '{4, 2}, integer LNN [NumLayers-1:0] = '{2, 5}
-)
+    CyclesPerPixel = 4, ImageSize = 4, integer LWB [NumLayers-1:0] = '{4, 2}, integer LNN [NumLayers-1:0] = '{2, 5})
 (
     input                                       clk,
     input                                       res_n,
@@ -42,6 +41,7 @@ module dnn_top
     input [NumIn-1:0][BitSize-1:0]              in_data,
     // input                                       in_w_en,
     input [MaxNumNerves-1:0][M_W_BitSize-1:0]   in_weights,
+    input [NumLayers-2:0]               weight_en_posedge,
 
     output                              out_ready,
     output [LNN[0]-1:0][BitSize-1:0]    out_data,
@@ -67,13 +67,6 @@ module dnn_top
         f_layer0 (.clk(clk), .res_n(res_n && !in_fl_res), .in_valid(in_valid), .in_data(in_data), .out_ready(fl_out_ready), .out_valid(fl_out_valid), 
         .out_data(fl_out_data), .out_start(fl_out_start));
 
-
-    logic [$clog2(MaxNumNerves)+1:0]    weight_timer_c;
-    logic [$clog2(MaxNumNerves)+1:0]    weight_timer_r;
-    logic [$clog2(NumLayers):0]         weight_counter_c;
-    logic [$clog2(NumLayers):0]         weight_counter_r;
-    logic [NumLayers-2:0]               weight_en; // hot encoding
-    logic [NumLayers-2:0]               weight_en_posedge; 
 
     logic fl_out_ready_p;
     logic fl_out_valid_p;
@@ -115,7 +108,7 @@ module dnn_top
             if (i == 0) begin
                 // out_ready can be used to signal which array has not been loaded yet
                 systolic_array #(.BitSize(BitSize), .Weight_BitSize(LWB[NumLayers-1-i]), .M_W_BitSize(M_W_BitSize), .NumOfInputs(ImageSize), .NumOfNerves(LNN[NumLayers-1-i])) 
-                    layer1 (.clk(clk), .res_n(res_n/*weight_en_posedge[NumLayers-1-i]*/), .in_valid(fl_out_valid_p), .in_start(fl_out_start_p), .in_data(fl_out_data_p), //.in_w_en(in_w_en), 
+                    layer1 (.clk(clk), .res_n(res_n), .in_valid(fl_out_valid_p), .in_start(fl_out_start_p), .in_data(fl_out_data_p), //.in_w_en(in_w_en), 
                     .in_weights(in_weights[MaxNumNerves-1:MaxNumNerves-LNN[NumLayers-1-i]]), .in_partial_sum('0 /*in_partial_sum*/), 
                     .out_ready(nl_out_ready), .out_valid(nl_out_valid), .out_done(nl_out_done), .out_data(nl_out), .out_start(nl_out_start));
 
@@ -144,55 +137,5 @@ module dnn_top
         assign out_done     = layer[NumLayers-1].nl_out_done;
     endgenerate
 
-    // only logic within this module is the loading in of weights
-    logic weight_counter_res;
-    always_comb begin
-        // if (in_w_en) begin
-        if (weight_en != 0) begin
-            weight_timer_c = weight_timer_r + 1;
-            weight_counter_c = weight_counter_r;
-            weight_counter_res = 0;
-            weight_en_posedge = '1;
-
-            if (weight_counter_c == 0) begin
-                if (weight_timer_c >= ImageSize) begin
-                    weight_counter_c = weight_counter_c + 1;
-                    weight_counter_res = 1;
-                    weight_en_posedge = '1 ^ (weight_en >> 1);
-                end
-            end
-            else if (weight_counter_c < NumLayers) begin
-                if (weight_timer_c >= LNN[NumLayers - 1 - weight_counter_c]) begin
-                    weight_counter_c = weight_counter_c + 1;
-                    weight_counter_res = 1;
-                    weight_en_posedge = '1 ^ (weight_en >> 1);
-                end
-            end
-        end
-
-    end
-
-    // assign weight_en[NumLayers-1] = res_n;
-    // assign weight_en_posedge[NumLayers-1] = ~res_n;
-
-    always_ff @(posedge clk) begin
-        if (!res_n) begin
-            weight_counter_r    <= 0;
-            weight_timer_r      <= 0;
-            weight_en[NumLayers-1] <= 1;
-            weight_en[NumLayers-2:0] <= '0;
-            // weight_en_posedge[NumLayers-1] <= 0;
-            // weight_en_posedge[NumLayers-2:0] <= '1;
-
-        end
-        else begin
-            weight_counter_r    <= weight_counter_c;
-            weight_timer_r      <= (weight_counter_res) ? 0 : weight_timer_c;
-            
-            weight_en            <= (weight_counter_c != weight_counter_r) ? weight_en >> 1 : weight_en;
-            // weight_en_posedge    <= (weight_counter_c != weight_counter_r) ? '1 ^ (weight_en >> 1) : '1;
-
-        end
-    end
     
 endmodule
