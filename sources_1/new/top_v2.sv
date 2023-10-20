@@ -2,7 +2,7 @@
 
 module top_v2 #(
     // convolution + pooling layer(s) top parameters
-    N = 3, BitSize = 8, ImageWidth = 8, PoolingN = 2, 
+    N = 3, BitSize = 8, ImageWidth = 16, PoolingN = 2, 
     C1NumberOfK = 8, C2NumberOfK = 8, C2ProcessingElements = 2,
     C1KernelBitSize = 8, C2KernelBitSize = 8,
     [C1KernelBitSize*(N*N)-1:0] C1kernel [C1NumberOfK-1:0] = {'0,'0,'0,'0,'0,'0,'0,'0},
@@ -11,7 +11,7 @@ module top_v2 #(
     M_W_BitSize = 8, NumLayers = 4, MaxNumNerves = 8,
     integer LWB [NumLayers-1:0] = '{8, 8, 8, 8}, // left to right 
     integer LNN [NumLayers-1:0] = '{8, 8, 8, 8}, // left to right
-    integer DNN_Depths [NumLayers-1:0] = '{4, 4, 4, 1},   // left to right
+    integer DNN_Depths [NumLayers-1:0] = '{8, 8, 8, 1},   // left to right
     LatencyDelay = 3                        // increase to ensure all output of the FCL is given in one go (required due to no stall signals)
     )
     (
