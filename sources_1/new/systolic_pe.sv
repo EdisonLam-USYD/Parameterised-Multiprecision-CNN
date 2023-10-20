@@ -21,7 +21,7 @@
 
 // systolic processing element, used for matrix multiplication within layers and hidden layers to avoid fan-out
 // systolic_pe #(.BitSize(), .Weight_BitSize(), .M_W_BitSize()) s_block (.clk(clk), .res_n(), .en_l_b(), .in_a(), .in_b(), .in_partial_sum(), .out_a(), .out_b(), .out_partial_sum());
-module systolic_pe #(BitSize = 8, M_W_BitSize = 8, Weight_BitSize = 8, Depth = 1, Offset = 0)
+module systolic_pe #(BitSize = 8, Weight_BitSize = 8, M_W_BitSize = Weight_BitSize, Depth = 1, Offset = 0)
     (
         input                               clk,
         input                               res_n,
@@ -76,6 +76,11 @@ module systolic_pe #(BitSize = 8, M_W_BitSize = 8, Weight_BitSize = 8, Depth = 1
 
     generate 
         if (Weight_BitSize == 1) begin
+            // mul1bit mul1 (
+            //       .A(stored_b[depth_count_b]),  // input wire [0 : 0] A
+            //       .B(out_a),  // input wire [7 : 0] B
+            //       .P(multi_val)  // output wire [8 : 0] P
+            //     );
             multiply_1Bit #(.BitSize(BitSize)) multi (
                                         .in_data(out_a),
                                         .i_prod(stored_b[depth_count_b]),
@@ -83,6 +88,11 @@ module systolic_pe #(BitSize = 8, M_W_BitSize = 8, Weight_BitSize = 8, Depth = 1
                                         );
         end
         else if (Weight_BitSize == 2) begin
+            // mul2bit mul2 (
+            //       .A(stored_b[depth_count_b]),  // input wire [0 : 0] A
+            //       .B(out_a),  // input wire [7 : 0] B
+            //       .P(multi_val)  // output wire [8 : 0] P
+            //     );
             multiply_2Bit #(.BitSize(BitSize)) multi (
                                         .in_data(out_a),
                                         .i_prod(stored_b[depth_count_b]),
@@ -90,6 +100,11 @@ module systolic_pe #(BitSize = 8, M_W_BitSize = 8, Weight_BitSize = 8, Depth = 1
                                         );
         end
         else if (Weight_BitSize == 4) begin
+            // mul4bit mul4 (
+            //       .A(stored_b[depth_count_b]),  // input wire [0 : 0] A
+            //       .B(out_a),  // input wire [7 : 0] B
+            //       .P(multi_val)  // output wire [8 : 0] P
+            //     );
             multiply_4Bit #(.BitSize(BitSize), .FixedPointPos()) multi (
                                         .in_data(out_a),
                                         .i_prod(stored_b[depth_count_b]),
@@ -97,6 +112,11 @@ module systolic_pe #(BitSize = 8, M_W_BitSize = 8, Weight_BitSize = 8, Depth = 1
                                         );
         end
         else if (Weight_BitSize == 8) begin
+            // mul8bit mul8 (
+            //       .A(stored_b[depth_count_b]),  // input wire [0 : 0] A
+            //       .B(out_a),  // input wire [7 : 0] B
+            //       .P(multi_val)  // output wire [8 : 0] P
+            //     );
             multiply_8Bit #(.BitSize(BitSize), .FixedPointPos()) multi (
                                         .in_data(out_a),
                                         .i_prod(stored_b[depth_count_b]),

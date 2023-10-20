@@ -60,7 +60,7 @@ module takes m + n + p cycles to complete
 //             .clk(), .res_n(), .in_start(), .in_valid(), .in_data(), .in_weights(), 
 //             .in_partial_sum(), .out_ready(), .out_valid(), .out_done(), 
 //             .out_start(), .out_data());
-module fc_layer #(BitSize = 8, M_W_BitSize = 4, Weight_BitSize = 2, NumOfInputs = 2, NumOfNerves = 4, DepthIn = 2, DepthOut = 2)
+module fc_layer #(BitSize = 8, M_W_BitSize = 8, Weight_BitSize = 8, NumOfInputs = 2, NumOfNerves = 8, DepthIn = 32, DepthOut = 2)
     (
         input                                   clk,
         input                                   res_n,
